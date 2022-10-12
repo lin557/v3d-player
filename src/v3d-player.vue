@@ -1,5 +1,5 @@
 <template>
-  <div class="v3d-player" :class="fillCls" :style="posterImg">
+  <div class="v3d-player" :class="fillCls" :style="posterImg" ref="refPlayer">
     <div class="v3d-focus" :class="focusCls"></div>
     <div class="v3d-shade" :class="statusCls">
       <div class="v3d-center" v-if="isReady">
@@ -10,9 +10,24 @@
         </svg>
       </div>
       <V3dLoading v-if="isLoading" />
+      <div class="v3d-error" v-if="isError">
+        <div class="v3d-error-svg">
+          <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <path
+              d="M512 1021.72444445c-281.07603513 0-509.72444445-228.64840931-509.72444445-509.72444445S230.92396487 2.27555555 512 2.27555555 1021.72444445 230.92396487 1021.72444445 512 793.07603513 1021.72444445 512 1021.72444445zM512 75.42018617c-240.73610126 0-436.57981383 195.84371143-436.57981383 436.57981383 0 240.69891527 195.84371143 436.57981383 436.57981383 436.57981383 240.69891527 0 436.57981383-195.87894158 436.57981383-436.57981383C948.57981383 271.26389874 752.69891527 75.42018617 512 75.42018617z">
+            </path>
+            <path
+              d="M563.26308978 513.56576313l157.43162481-155.72102827c14.30911886-14.12709945 14.41872213-37.17317746 0.29162383-51.48229632s-37.21036345-14.41872213-51.48229632-0.29162382l-157.65083136 155.90304768-155.24738503-155.72102827c-14.23670272-14.23670272-37.2455936-14.30911886-51.48229632-0.07241614-14.23670272 14.19951559-14.27193173 37.2455936-0.07241614 51.48229632l155.02817848 155.50182172-156.30427477 154.62890838c-14.30911886 14.16232846-14.41872213 37.17317746-0.29162382 51.48229632 7.13596587 7.20838315 16.49335865 10.81355264 25.88598158 10.81355264 9.24778951 0 18.49557902-3.53079637 25.59631474-10.52192882l156.52152433-154.81092778 157.79566479 158.30649514c7.10073685 7.13596587 16.42094251 10.70394937 25.77833529 10.70394937 9.32020565 0 18.60518229-3.5679835 25.70396103-10.63153209 14.23670272-14.19951559 14.27193173-37.21036345 0.07241614-51.48229632L563.26308978 513.56576313z">
+            </path>
+          </svg>
+        </div>
+        <div class="v3d-error-text">
+          {{ self.hint }}
+        </div>
+      </div>
     </div>
     <div class="v3d-video" ref="refVideo"></div>
-    <div class="v3d-footer">
+    <div class="v3d-footer" ref="refFooter">
       <button class="v3d-control v3d-button" type="button" title="Muted" aria-disabled="false" @click="toggleMuted()">
         <svg v-if="!self.muted" class="svg-footer" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <path
@@ -32,6 +47,7 @@
         {{ kbs }}
       </div>
       <button
+        v-if="recordCtrl"
         class="v3d-control v3d-button"
         :class="recordCls"
         type="button"
@@ -72,17 +88,21 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, computed, defineEmits, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, watch, defineEmits, onMounted, onBeforeUnmount } from 'vue'
 import Dplayer from 'dplayer-lite'
 import { DPlayerEvents, DPlayerOptions } from 'dplayer-lite'
 import flvjs from 'flv.js'
 import Hls from 'hls.js'
 import { Events, FragLoadedData, FragBufferedData } from 'hls.js'
 import V3dLoading from './v3d-loading.vue'
+import Fetcher from './utils/fetcher'
 import { V3dPlayerEvents, V3dPlayerOptions } from '../d.ts'
+import { merge } from './utils/utils'
 
 // 获取视频容器
 const refVideo = ref()
+const refFooter = ref()
+const refPlayer = ref()
 
 const emits = defineEmits([
   // 视频事件
@@ -110,9 +130,12 @@ const emits = defineEmits([
   'volumechange',
   'waiting',
   // 播放器事件
+  'ready',
   'screenshot',
   'contextmenu_show',
   'contextmenu_hide',
+  'fetch_start',
+  'fetch_stop',
   'notice_show',
   'notice_hide',
   'quality_start',
@@ -168,6 +191,8 @@ interface MediaErrorX {
 }
 
 interface Data {
+  // 当http-flv头有音视频 但http-flv没有音频流时 自动重置播放器
+  autoAudio: boolean,
   player: Dplayer | undefined
   error: MediaErrorX | undefined
   // 播放速率 1.0
@@ -177,15 +202,25 @@ interface Data {
   status: number
   muted: boolean
   focused: boolean
-  fetching: boolean
+  progress: number
+  // 加载flv时用于显示加载网速
   speed: string
   // last Decoded Count
   lastCount: number
   // last Decoded Frame
   lastFrame: number
+  // 提示文本
+  hint: string
+  fetcher: Fetcher | undefined
+  flv: flvjs.Player | undefined
+  hls: Hls | undefined
 }
 
+// 超过5个process 都没有收到音频流 自动重载播放器
+const ERR_MAX_AUDIO_COUNT = 10
+
 const _data: Data = {
+  autoAudio: true,
   player: undefined,
   error: undefined,
   rate: 1.0,
@@ -193,13 +228,49 @@ const _data: Data = {
   status: 0,
   muted: false,
   focused: false,
-  fetching: false,
+  progress: 0,
   speed: '',
   lastCount: 0,
   lastFrame: 0,
+  hint: '',
+  fetcher: undefined,
+  flv: undefined,
+  hls: undefined
 }
 
 let self = reactive(_data)
+
+const defaultOption = {
+  live: false,
+  autoplay: false,
+  theme: '#b7daff',
+  loop: false,
+  lang: (navigator.language).toLowerCase(),
+  screenshot: false,
+  airplay: true,
+  chromecast: false,
+  hotkey: true,
+  preload: 'metadata',
+  volume: 0.7,
+  playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2],
+  contextmenu: [],
+  controls: true,
+  video: {},
+  muted: false,
+  mutex: false,
+  pluginOptions: { hls: {}, flv: {}, dash: {}, webtorrent: {} },
+  preventClickToggle: false,
+  autoRate: {
+    enabled: false,
+    // 小于3秒 正常速度播放
+    min: 3.0,
+    // 大于9秒 1.5倍速播放
+    max: 9.0,
+  },
+  connect: false,
+  hasAudio: true,
+  record: false,
+}
 
 const fillCls = computed(() => {
   let cls = ''
@@ -232,6 +303,10 @@ const isLoading = computed(() => {
   return (self.status > 0) && (self.status < 3)
 })
 
+const isError = computed(() => {
+  return self.status === 4
+})
+
 const kbs = computed(() => {
   if (self.speed === '') {
     return ''
@@ -261,91 +336,27 @@ const statusCls = computed(() => {
   }
 })
 
+const recordCtrl = computed(() => {
+  if (self.lastOptions && self.lastOptions.record) {
+    return self.lastOptions.record
+  } 
+  return false
+})
+
 const recordCls = computed(() => {
   let cls = ''
   if (
     self.lastOptions &&
-    self.lastOptions.record &&
-    self.lastOptions.record.enabled
+    self.lastOptions.record
   ) {
-    if (self.fetching) {
+    if (self.fetcher && self.fetcher.fetching) {
       cls = 'v3d-fetching'
     }
   } else {
-    cls = 'v3d-hide'
+    cls = 'v3d-hidden'
   }
   return cls
 })
-
-const getSuffix = (fileName: string) => {
-  let item = fileName.split('.').pop()
-  if (item === undefined) {
-    return ''
-  } else {
-    return item.toLowerCase()
-  }
-}
-
-const getMediaType = (src: string) => {
-  let type = 'auto'
-  if (/m3u8(#|\?|$)/i.exec(src)) {
-    type = 'hls'
-  } else if (/.flv(#|\?|$)/i.exec(src)) {
-    type = 'flv'
-  } else if (/.mpd(#|\?|$)/i.exec(src)) {
-    type = 'dash'
-  } else {
-    type = 'normal'
-  }
-  return type
-}
-
-const defaultOption = {
-  live: false,
-  autoplay: false,
-  theme: '#b7daff',
-  loop: false,
-  lang: (navigator.language).toLowerCase(),
-  screenshot: false,
-  airplay: true,
-  chromecast: false,
-  hotkey: true,
-  preload: 'metadata',
-  volume: 0.7,
-  playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2],
-  contextmenu: [],
-  controls: true,
-  video: {},
-  muted: false,
-  mutex: false,
-  pluginOptions: { hls: {}, flv: {}, dash: {}, webtorrent: {} },
-  preventClickToggle: false,
-  autorate: {
-    enabled: false,
-    // 小于3秒 正常速度播放
-    min: 3.0,
-    // 大于9秒 1.5倍速播放
-    max: 9.0,
-  }
-}
-
-type MergeObject = {
-  [key in string | number]: any
-}
-
-// 只是写法这样看着顺眼
-type Target<A, B> = A & Omit<Partial<B>, keyof A>
-
-type Merge<A, B> = A & B
-
-function merge<A extends MergeObject, B extends MergeObject>(target: A, source: B): Merge<A, B> {
-  for (const key in source) {
-    if (typeof target[key] === 'undefined') {
-      (target[key] as Target<A, B>) = source[key]
-    }
-  }
-  return target as Merge<A, B>
-}
 
 const bufferedEnd = () => {
   let ret = 0
@@ -388,7 +399,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
             isLive: true,
             cors: true,
             withCredentials: false,
-            hasAudio: true
+            hasAudio: option.hasAudio
           },
           {
             // 启用IO存储缓冲区。如果您需要实时流播放的实时（最小延迟），则设置为false
@@ -412,19 +423,42 @@ const createPlayer = (option: V3dPlayerOptions) => {
                 code: 2,
                 message: 'MEDIA_ERR_NETWORK: (flv) ' + e.msg
               }
-              trigger('error')
-              self.error = undefined
               break
             case flvjs.ErrorTypes.MEDIA_ERROR:
+              self.error = {
+                code: 3,
+                message: 'MEDIA_ERR_DECODE: (flv) ' + e.msg
+              }
               break
             case flvjs.ErrorTypes.OTHER_ERROR:
+              self.error = {
+                code: 4,
+                message: 'OTHER_ERROR: (flv) ' + e.msg
+              }
               break
           }
+          trigger('error')
+          self.error = undefined
         })
         flvPlayer.on(flvjs.Events.STATISTICS_INFO, (info) => {
           self.speed = info.speed.toFixed(0)
-          // console.log(info)
-          // this.updateSpeed()
+          if (self.autoAudio && self.lastOptions && self.lastOptions.hasAudio) {
+            // 有下载 但一直无法解码 表示无音频
+            if (info.speed > 0 && info.decodedFrames === 0) {
+              self.progress++
+              if (self.progress >= ERR_MAX_AUDIO_COUNT) {
+                window.console.warn(
+                  currentUrl() +
+                    ' has no audio data, video will auto reset to play.'
+                )
+                // 关掉音频 自动重载
+                self.lastOptions.hasAudio = false
+                play(self.lastOptions)
+                return
+              }
+            } 
+          }
+          
           if (self.lastFrame === 0) {
             self.lastFrame = info.decodedFrames
             return
@@ -438,19 +472,14 @@ const createPlayer = (option: V3dPlayerOptions) => {
             if (self.lastCount >= 30) {
               self.lastCount = 0
               self.lastFrame = 0
-              // if (self.connect && self.connect.auto) {
-              //   self.player.setTimeout(() => {
-              //     window.console.warn(
-              //       self.lastOptions.src + ' decoded error. reconnect. '
-              //     )
-              //     self.play(self.lastOptions)
-              //   }, 300)
-              // }
+              replay(300)
             }
           }
         })
         flvPlayer.attachMediaElement(video)
         flvPlayer.load()
+
+        self.flv = flvPlayer
       },
       hls: (video: HTMLMediaElement, player: Dplayer) => {
         const hls = new Hls()
@@ -479,6 +508,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
         })
         hls.loadSource(video.src)
         hls.attachMedia(video)
+        self.hls = hls
       },
       flv265: (video: HTMLMediaElement, player: Dplayer) => {
         video.classList.add('v3d-hidden')
@@ -500,15 +530,27 @@ const createPlayer = (option: V3dPlayerOptions) => {
   // 初始化视频对象
   self.lastOptions = opts
   self.player = new Dplayer(opts as DPlayerOptions)
+  // 下载插件
+  if (opts.record) {
+    self.fetcher = new Fetcher(self.player, { live: opts.live })
+  }
 
+  doDestroy()
+  
   // 自动播放状态也要隐藏
   self.player.on('playing' as DPlayerEvents, () => {
     if (self.player) {
       self.player.controller.setAutoHide()
     }
   })
+  self.player.on('pause', () => {
+    // 实时流不允许隐藏时暂停
+    if (self.player && self.lastOptions && self.lastOptions.live) {
+      self.player.play()
+    }
+  })
   // 错误 播放mp4/m3u8时可以捕获 flv不行
-  self.player.on('error' as DPlayerEvents, () => {
+  self.player.on('error', () => {
     if (self.error === undefined && self.player && self.player.video.error) {
       self.error = self.player.video.error
     }
@@ -520,17 +562,35 @@ const createPlayer = (option: V3dPlayerOptions) => {
           break
         case 2:
           // MEDIA_ERR_NETWORK
+          replay(380)
           break
         case 3:
           // MEDIA_ERR_DECODE
+          replay(380)
           break
       }
       console.log(self.error)
+      self.hint = self.error.message
     }
   })
   self.player.on('loadeddata', () => {
     self.status = 3
   })
+  self.player.on('fullscreen', () => {
+    if (props.lockControl) {
+      refVideo.value.append(refFooter.value)
+    }
+  })
+  self.player.on('fullscreen_cancel', () => {
+    if (props.lockControl) {
+      refPlayer.value.append(refFooter.value)
+    }
+  })
+
+  self.player.on('canplay', () => {
+    self.autoAudio = false
+  })
+
   doTimeUpdate()
 
   eventToVue()
@@ -545,27 +605,75 @@ const currentTime = () => {
   return ret
 }
 
+const currentUrl = () => {
+  let ret = ''
+  if (self.player && self.lastOptions && self.lastOptions.video) {
+    ret = self.lastOptions.video.url
+  }
+  return ret
+}
+
 const data = () => {
   return self
+}
+
+const doDestroy = () => {
+  if (self.player) {
+    self.player.on('destroy', () => {
+      if (self.flv) {
+        self.flv.unload()
+        self.flv.detachMediaElement()
+        self.flv.destroy()
+        self.flv = undefined
+      }
+      if (self.hls) {
+        self.hls.destroy()
+        self.hls = undefined
+      }
+    })
+  }
+}
+
+const doTimeUpdate = () => {
+  if (self.player) {
+    self.player.on('timeupdate', () => {
+      if (self.lastOptions && self.lastOptions.autoRate && self.lastOptions.autoRate.enabled) {
+        // if (props.autoRate.enabled && this.lastOptions.isLive) {
+        // 当前播放时间
+        const cur = currentTime()
+        // 缓冲区尾部时间
+        const end = bufferedEnd()
+
+        if (end - cur > self.lastOptions.autoRate.max) {
+          playRate(1.5)
+        }
+        if (end - cur < self.lastOptions.autoRate.min) {
+          playRate(1.0)
+        }
+      }
+    })
+  }
 }
 
 const destoryPlayer = () => {
   if (self.player) {
     // 如果在录像中 需要停止录像功能
-    if (self.fetching) {
-      //self.player.fetchObj.stop(false)
-    }
+    if (self.fetcher && self.fetcher.fetching) {
+      self.fetcher.stop(false)
+    }   
     self.player.destroy()
     self.player = undefined
   }
   self.status = 0
+  self.autoAudio = true
   self.error = undefined
   self.lastOptions = undefined
   self.rate = 1.0
-  self.fetching = false
   self.speed = ''
+  self.hint = ''
   self.lastCount = 0
   self.lastFrame = 0
+  self.progress = 0
 }
 
 /**
@@ -590,33 +698,18 @@ const eventToVue = () => {
   }
 }
 
-const getUrl = () => {
-  let ret = ''
-  if (self.player && self.lastOptions && self.lastOptions.video) {
-    ret = self.lastOptions.video.url
+const getMediaType = (src: string) => {
+  let type = 'auto'
+  if (/m3u8(#|\?|$)/i.exec(src)) {
+    type = 'hls'
+  } else if (/.flv(#|\?|$)/i.exec(src)) {
+    type = 'flv'
+  } else if (/.mpd(#|\?|$)/i.exec(src)) {
+    type = 'dash'
+  } else {
+    type = 'normal'
   }
-  return ret
-}
-
-const doTimeUpdate = () => {
-  if (self.player) {
-    self.player.on('timeupdate', () => {
-      if (self.lastOptions && self.lastOptions.autorate && self.lastOptions.autorate.enabled) {
-        // if (props.autoRate.enabled && this.lastOptions.isLive) {
-        // 当前播放时间
-        const cur = currentTime()
-        // 缓冲区尾部时间
-        const end = bufferedEnd()
-
-        if (end - cur > self.lastOptions.autorate.max) {
-          playRate(1.5)
-        }
-        if (end - cur < self.lastOptions.autorate.min) {
-          playRate(1.0)
-        }
-      }
-    })
-  }
+  return type
 }
 
 /**
@@ -632,8 +725,10 @@ const pause = () => {
  * 播放视频
  * @param option V3dPlayerOptions
  */
-const play = (option: V3dPlayerOptions) => {
-  createPlayer(option)
+const play = (option: V3dPlayerOptions | undefined) => {
+  if (option) {
+    createPlayer(option)
+  }
 }
 
 /**
@@ -647,7 +742,7 @@ const playRate = (rate: number) => {
       self.rate = rate
       self.player.speed(rate)
       window.console.warn(
-        getUrl() + ' play rate change to ' + self.rate
+        currentUrl() + ' play rate change to ' + self.rate
       )
     }
   }
@@ -663,6 +758,18 @@ const randomString = (len: number) => {
     pwd += $chars.charAt(Math.floor(Math.random() * maxPos))
   }
   return pwd
+}
+
+const replay = (time: number) => {
+  if (self.lastOptions && self.lastOptions.connect) {
+    self.status = 1
+    setTimeout(() => {
+      window.console.warn(
+        currentUrl() + ' reconnect. '
+      )
+      play(self.lastOptions)
+    }, time)
+  }
 }
 
 /**
@@ -698,7 +805,9 @@ const toggleMuted = () => {
  * 录像切换
  */
 const toggleRecord = () => {
-
+  if (self.status === 3 && self.fetcher) {
+    self.fetcher.toggle()
+  }
 }
 
 /**
@@ -706,7 +815,7 @@ const toggleRecord = () => {
  */
 const toggleScreen = () => {
   if (self.player) {
-    self.player.fullScreen.request('browser')
+    self.player.toggleScreen('browser')
   }
 }
 
@@ -733,6 +842,12 @@ const volume = (percentage?: number, nonotice?: boolean) => {
   }
 }
 
+watch(props, (newValue, oldValue) => {
+  if (self.player) {
+    self.player.options.controls = !props.lockControl
+  }
+})
+
 onBeforeUnmount(() => {
   destoryPlayer()
 })
@@ -744,15 +859,18 @@ onMounted(() => {
 })
 
 defineExpose({
-  data,
   bufferedEnd,
   close,
   currentTime,
+  currentUrl,
+  data,
   pause,
   play,
   playRate,
   seek,
   toggle,
+  toggleScreen,
+  trigger,
   volume
 })
 
@@ -821,6 +939,7 @@ $footerColor: rgba(30, 30, 30, 72%);
     bottom: 0;
     z-index: 5;
     background-color: #000;
+    pointer-events: none;
 
     .v3d-chase {
       left: calc(50% - 15px);
@@ -831,6 +950,32 @@ $footerColor: rgba(30, 30, 30, 72%);
       position: absolute;
       left: calc(50% - 36px);
       top: calc(50% - 36px);
+    }
+
+    .v3d-error {
+      width: 100%;
+      height: 100%;
+
+      .v3d-error-svg {
+        position: absolute;
+        left: calc(50% - 24px);
+        top: calc(50% - 24px);
+
+        svg {
+          fill: #999;
+          width: 48px;
+          height: 48px;
+        }
+      }
+    }
+
+    .v3d-error-text {
+      color: #ccc;
+      font-size: 12px;
+      text-align: center;
+      position: absolute;
+      top: calc(50% + 28px);
+      width: 100%;
     }
   }
 
@@ -871,13 +1016,21 @@ $footerColor: rgba(30, 30, 30, 72%);
       line-height: 0;
     }
 
-    .v3d-button:hover,
-    .v3d-button:active {
+    .v3d-button:hover {
       .svg-footer {
         fill: #fff;
         background-color: #555;
         box-shadow: 0px 0px 10px #ccc;
         transform: scale(1.05);
+      }
+    }
+
+    .v3d-button:active {
+      .svg-footer {
+        fill: #fff;
+        background-color: #555;
+        box-shadow: 0px 0px 10px #ccc;
+        transform: scale(0.95);
       }
     }
 
@@ -898,8 +1051,33 @@ $footerColor: rgba(30, 30, 30, 72%);
     }
 
     .v3d-fetching {
-      .vvp-icon-placeholder:before {
-        color: #f00;
+      .svg-footer {
+        fill: #f00 !important;
+      }
+    }
+  }
+
+  .v3d-fetcher {
+    position: absolute;
+    opacity: 1;
+    user-select: none;
+    width: 39px;
+    height: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    margin: 5px;
+    color: #fff;
+    span:first-child {
+      font-family: Tahoma, Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      text-shadow: #000 1px 0 0, #000 0 1px 0, #000 -1px 0 0, #000 0 -1px 0;
+    }
+    span:last-child {
+      svg {
+        width: 14px;
+        height: 14px;
       }
     }
   }
@@ -908,8 +1086,8 @@ $footerColor: rgba(30, 30, 30, 72%);
    * 视频图像全屏显示 不支持ie
    */
   &.v3d-fill {
-    .video-js {
-      .vjs-tech {
+    .dplayer {
+      video {
         object-fit: fill;
       }
     }

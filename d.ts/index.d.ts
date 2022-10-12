@@ -25,9 +25,12 @@ export type V3dPlayerEvents =
 'volumechange' |
 'waiting' |
 // 播放器事件
+'ready' |
 'screenshot' |
 'contextmenu_show' |
 'contextmenu_hide' |
+'fetch_start' |
+'fetch_stop' |
 'notice_show' |
 'notice_hide' |
 'quality_start' |
@@ -75,7 +78,7 @@ export interface RateParam {
 
 export interface RecordParam {
   enabled: boolean
-  isLive?: boolean | undefined
+  live?: boolean | undefined
 }
 
 export interface V3dPlayerOptions {
@@ -96,16 +99,20 @@ export interface V3dPlayerOptions {
   theme?: string | undefined
   video?: DPlayerVideo | undefined
   volume?: number | undefined
-  autorate?: RateParam | undefined
-  record?: RecordParam | undefined
+  autoRate?: RateParam | undefined
+  connect?: boolean | undefined
+  record?: boolean | undefined
+  hasAudio?: boolean | undefined
 }
 
 export default class V3dPlayer {
   close(): void
+  currentUrl(): string
   pause(): void
   play(option: V3dPlayerOptions): void
   seek(time: number): void
   speed(rate: number): void
   toggle(): void
+  trigger(event: string): void
   volume(percentage?: number, nonotice?: boolean): number
 }
