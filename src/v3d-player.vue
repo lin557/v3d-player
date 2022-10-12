@@ -41,7 +41,7 @@
         </svg>
       </button>
       <div class="v3d-control v3d-control-text v3d-control-info">
-        ABCDEFG
+        {{ titleText }}
       </div>
       <div class="v3d-control v3d-control-text v3d-control-speed">
         {{ kbs }}
@@ -270,6 +270,7 @@ const defaultOption = {
   connect: false,
   hasAudio: true,
   record: false,
+  title: ''
 }
 
 const fillCls = computed(() => {
@@ -358,6 +359,13 @@ const recordCls = computed(() => {
   return cls
 })
 
+const titleText = computed(() => {
+  if (self.lastOptions) {
+    return self.lastOptions.title
+  }
+  return ''
+})
+
 const bufferedEnd = () => {
   let ret = 0
   if (self.player) {
@@ -381,6 +389,9 @@ const createPlayer = (option: V3dPlayerOptions) => {
   self.muted = opts.muted
   // console.log(opts)
   const type = getMediaType(option.src)
+  if (type === 'hls') {
+    opts.record = false
+  }
   opts.container = refVideo.value
   opts.video = {
     // 指定视频播放链接
@@ -783,6 +794,15 @@ const seek = (time: number) => {
 }
 
 /**
+ * 抓图
+ */
+const snapshot = () => {
+  if (self.player) {
+    self.player.snapshot()
+  }
+}
+
+/**
  * 切换暂停与播放
  */
 const toggle = () => {
@@ -868,6 +888,7 @@ defineExpose({
   play,
   playRate,
   seek,
+  snapshot,
   toggle,
   toggleScreen,
   trigger,
@@ -1018,19 +1039,23 @@ $footerColor: rgba(30, 30, 30, 72%);
 
     .v3d-button:hover {
       .svg-footer {
-        fill: #fff;
         background-color: #555;
         box-shadow: 0px 0px 10px #ccc;
         transform: scale(1.05);
+        path {
+          fill: #fff;
+        }
       }
     }
 
     .v3d-button:active {
       .svg-footer {
-        fill: #fff;
         background-color: #555;
         box-shadow: 0px 0px 10px #ccc;
         transform: scale(0.95);
+        path {
+          fill: #fff;
+        }
       }
     }
 
@@ -1052,7 +1077,9 @@ $footerColor: rgba(30, 30, 30, 72%);
 
     .v3d-fetching {
       .svg-footer {
-        fill: #f00 !important;
+        path {
+          fill: #f00 !important;
+        }
       }
     }
   }
@@ -1112,10 +1139,12 @@ $footerColor: rgba(30, 30, 30, 72%);
   }
 
   .svg-footer {
-    transition: fill 0.1s;
-    fill: #aaa;
     width: 16px;
     height: 16px;
+    path {
+      transition: fill 0.1s;
+      fill: #aaa;
+    }
   }
 
   .svg-center {

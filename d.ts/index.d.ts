@@ -103,6 +103,7 @@ export interface V3dPlayerOptions {
   connect?: boolean | undefined
   record?: boolean | undefined
   hasAudio?: boolean | undefined
+  title?: string | undefined
 }
 
 export default class V3dPlayer {
@@ -111,6 +112,7 @@ export default class V3dPlayer {
   pause(): void
   play(option: V3dPlayerOptions): void
   seek(time: number): void
+  snapshot(): void
   speed(rate: number): void
   toggle(): void
   trigger(event: string): void
