@@ -1,6 +1,6 @@
 {
   "name": "v3d-player",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Vue3 Dplayer-Lite",
   "main": "dist/v3d-player.umd.js",
   "module": "dist/v3d-player.es.js",
@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "tsc": "vue-tsc --noEmit",
+    "dts": "vue-tsc --declaration --emitDeclarationOnly ",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "publish:last": "npm run build && npm publish"
@@ -41,7 +42,7 @@
     "dplayer-lite": "^1.27.13",
     "flv.js": "^1.6.2",
     "hls.js": "^1.2.3",
-    "vue": "^3.2.37"
+    "vue": "^3.2.40"
   },
   "devDependencies": {
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",

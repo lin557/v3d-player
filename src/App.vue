@@ -1,6 +1,6 @@
 <template>
   <div class="demo-player">
-    <v3d-player ref="player" :fill="self.filled" :lock-control="self.lockControl" />
+    <v3d-player ref="player" :fill="self.filled" :lock-control="self.lockControl" :poster="self.poster" />
 
     <div class="demo-control">
       <button @click="toggleScreen">fullScreen</button>

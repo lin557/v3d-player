@@ -1,7 +1,7 @@
 <template>
-  <div class="v3d-player" :class="fillCls" :style="posterImg" ref="refPlayer">
+  <div class="v3d-player" :class="fillCls" ref="refPlayer">
     <div class="v3d-focus" :class="focusCls"></div>
-    <div class="v3d-shade" :class="statusCls">
+    <div class="v3d-shade" :class="statusCls" :style="posterImg">
       <div class="v3d-center" v-if="isReady">
         <svg class="svg-center" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <path
@@ -100,9 +100,10 @@ import { V3dPlayerEvents, V3dPlayerOptions } from '../d.ts'
 import { merge } from './utils/utils'
 
 // 获取视频容器
-const refVideo = ref()
-const refFooter = ref()
 const refPlayer = ref()
+const refVideo = ref()
+const refFooter = ref<HTMLDivElement>()
+
 
 const emits = defineEmits([
   // 视频事件
@@ -160,7 +161,7 @@ const props = defineProps({
   },
   options: {
     type: Object,
-    default: () => {
+    default() {
       return {
         autoplay: false,
         controls: true,
@@ -580,7 +581,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
           replay(380)
           break
       }
-      console.log(self.error)
+      // console.log(self.error)
       self.hint = self.error.message
     }
   })
@@ -624,10 +625,6 @@ const currentUrl = () => {
   return ret
 }
 
-const data = () => {
-  return self
-}
-
 const doDestroy = () => {
   if (self.player) {
     self.player.on('destroy', () => {
@@ -649,7 +646,6 @@ const doTimeUpdate = () => {
   if (self.player) {
     self.player.on('timeupdate', () => {
       if (self.lastOptions && self.lastOptions.autoRate && self.lastOptions.autoRate.enabled) {
-        // if (props.autoRate.enabled && this.lastOptions.isLive) {
         // 当前播放时间
         const cur = currentTime()
         // 缓冲区尾部时间
@@ -760,16 +756,16 @@ const playRate = (rate: number) => {
   return self.rate
 }
 
-const randomString = (len: number) => {
-  len = len || 32
-  const $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
-  const maxPos = $chars.length
-  let pwd = ''
-  for (let i = 0; i < len; i++) {
-    pwd += $chars.charAt(Math.floor(Math.random() * maxPos))
-  }
-  return pwd
-}
+// const randomString = (len: number) => {
+//   len = len || 32
+//   const $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
+//   const maxPos = $chars.length
+//   let pwd = ''
+//   for (let i = 0; i < len; i++) {
+//     pwd += $chars.charAt(Math.floor(Math.random() * maxPos))
+//   }
+//   return pwd
+// }
 
 const replay = (time: number) => {
   if (self.lastOptions && self.lastOptions.connect) {
@@ -883,7 +879,6 @@ defineExpose({
   close,
   currentTime,
   currentUrl,
-  data,
   pause,
   play,
   playRate,
@@ -905,10 +900,6 @@ $footerColor: rgba(30, 30, 30, 72%);
   height: 100%;
   position: relative;
   background-color: black;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
-  box-sizing: border-box;
 
   .dplayer {
     width: 100%;
@@ -960,6 +951,10 @@ $footerColor: rgba(30, 30, 30, 72%);
     bottom: 0;
     z-index: 5;
     background-color: #000;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    box-sizing: border-box;
     pointer-events: none;
 
     .v3d-chase {
