@@ -46,13 +46,7 @@ const options = reactive({
   // },
   record: true,
   // src: 'http://120.84.96.62:808/hls/1/index.m3u8?blog.ntnas.top'
-  // src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8'
-  // src: 'https://www.transcodegroup.cn/test/h2641.mp4',
-  // src: 'https://www.transcodegroup.cn/test/h264.mp4',
-  src: 'https://www.transcodegroup.cn/test/h264.flv',
-  // src: 'https://xn.transcodegroup.cn:8586/mdvr/live/11878_1.flv',
-  // src: 'https://www.distargps.com:11005/mdvr/live/10243_2.flv',
-  // src: 'https://www.bmtasmartbus.com:9088/mdvr/live/70280_2.flv'
+  src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8'
 })
 
 let self = reactive(_data)
