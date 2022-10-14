@@ -48,7 +48,7 @@
       </div>
       <button
         v-if="recordCtrl"
-        class="v3d-control v3d-button"
+        class="v3d-control v3d-button v3d-record"
         :class="recordCls"
         type="button"
         title="Record"
@@ -87,7 +87,7 @@
     </div>
   </div>
 </template>
-<script lang="ts" setup>
+<script lang="ts" setup name="V3dPlayer">
 import { ref, reactive, computed, watch, defineEmits, onMounted, onBeforeUnmount } from 'vue'
 import Dplayer from 'dplayer-lite'
 import { DPlayerEvents, DPlayerOptions } from 'dplayer-lite'
@@ -194,73 +194,68 @@ interface MediaErrorX {
 interface Data {
   // 当http-flv头有音视频 但http-flv没有音频流时 自动重置播放器
   autoAudio: boolean,
-  player: Dplayer | undefined
   error: MediaErrorX | undefined
-  // 播放速率 1.0
-  rate: number
-  lastOptions: V3dPlayerOptions | undefined
-  // 0=空闲 1=占用中 2=请求中 3=播放中/缓冲中 4=错误
-  status: number
-  muted: boolean
+  fetcher: Fetcher | undefined
+  flv: flvjs.Player | undefined
   focused: boolean
-  progress: number
-  // 加载flv时用于显示加载网速
-  speed: string
+  // 提示文本
+  hint: string
+  hls: Hls | undefined
+  index: number
   // last Decoded Count
   lastCount: number
   // last Decoded Frame
   lastFrame: number
-  // 提示文本
-  hint: string
-  fetcher: Fetcher | undefined
-  flv: flvjs.Player | undefined
-  hls: Hls | undefined
+  lastOptions: V3dPlayerOptions | undefined
+  muted: boolean
+  // 创建时间(或占用时间)
+  order: number
+
+  player: Dplayer | undefined
+  progress: number
+  // 播放速率 1.0
+  rate: number
+  // 加载flv时用于显示加载网速
+  speed: string
+  // 0=空闲 1=占用中 2=请求中 3=播放中/缓冲中 4=错误
+  status: number
+  // 标题
+  title: string | undefined
+  // 唯一标识
+  unique: string | undefined
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
 const ERR_MAX_AUDIO_COUNT = 10
 
-const _data: Data = {
+let _data: Data = {
   autoAudio: true,
-  player: undefined,
   error: undefined,
-  rate: 1.0,
-  lastOptions: undefined,
-  status: 0,
-  muted: false,
-  focused: false,
-  progress: 0,
-  speed: '',
-  lastCount: 0,
-  lastFrame: 0,
-  hint: '',
   fetcher: undefined,
   flv: undefined,
-  hls: undefined
+  focused: false,
+  hint: '',
+  hls: undefined,
+  index: 0,
+  lastCount: 0,
+  lastFrame: 0,
+  lastOptions: undefined,
+  muted: false,
+  order: 0,
+  player: undefined,
+  progress: 0,
+  rate: 1.0,
+  speed: '',
+  status: 0,
+  title: '',
+  unique: '',
 }
 
 let self = reactive(_data)
 
 const defaultOption = {
-  live: false,
-  autoplay: false,
-  theme: '#b7daff',
-  loop: false,
-  lang: (navigator.language).toLowerCase(),
-  screenshot: false,
   airplay: true,
-  chromecast: false,
-  hotkey: true,
-  preload: 'metadata',
-  volume: 0.7,
-  playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2],
-  contextmenu: [],
-  controls: true,
-  video: {},
-  muted: false,
-  mutex: false,
-  pluginOptions: { hls: {}, flv: {}, dash: {}, webtorrent: {} },
-  preventClickToggle: false,
+  autoplay: false,
   autoRate: {
     enabled: false,
     // 小于3秒 正常速度播放
@@ -268,10 +263,29 @@ const defaultOption = {
     // 大于9秒 1.5倍速播放
     max: 9.0,
   },
+  chromecast: false,
   connect: false,
+  contextmenu: [],
+  controls: true,
   hasAudio: true,
+  hotkey: true,
+  lang: (navigator.language).toLowerCase(),
+  live: false,
+  loop: false,
+  muted: false,
+  mutex: false,
+  order: 0,
+  playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2],
+  pluginOptions: { hls: {}, flv: {}, dash: {}, webtorrent: {} },
+  preload: 'metadata',
+  preventClickToggle: false,
   record: false,
-  title: ''
+  screenshot: false,
+  theme: '#b7daff',
+  title: '',
+  video: {},
+  volume: 0.7,
+  unique: ''
 }
 
 const fillCls = computed(() => {
@@ -361,8 +375,8 @@ const recordCls = computed(() => {
 })
 
 const titleText = computed(() => {
-  if (self.lastOptions) {
-    return self.lastOptions.title
+  if (self.title) {
+    return self.title
   }
   return ''
 })
@@ -382,12 +396,22 @@ const close = () => {
 }
 
 const createPlayer = (option: V3dPlayerOptions) => {
-  destoryPlayer()
   let opts = merge(option, defaultOption)
   if (props.lockControl) {
     opts.controls = false
   }
+  if (opts.unique === '' && self.unique) {
+    opts.unique = self.unique
+  }
+  if (opts.title === '' && self.title ) {
+    opts.title = self.title
+  }
+  destoryPlayer()
   self.muted = opts.muted
+  self.order === opts.order
+  self.unique = opts.unique
+  self.title = opts.title
+  
   // console.log(opts)
   const type = getMediaType(option.src)
   if (type === 'hls') {
@@ -678,9 +702,18 @@ const destoryPlayer = () => {
   self.rate = 1.0
   self.speed = ''
   self.hint = ''
+  self.title = undefined
+  self.unique = undefined
   self.lastCount = 0
   self.lastFrame = 0
   self.progress = 0
+}
+
+/**
+ * 获取el容器
+ */
+const el = () => {
+  return refPlayer.value as HTMLDivElement
 }
 
 /**
@@ -705,6 +738,17 @@ const eventToVue = () => {
   }
 }
 
+/**
+ * 焦点
+ * @param focus 空时返回状态 非常为设置或取消焦点
+ */
+const focused = (focus?: boolean) => {
+  if (focus === undefined) {
+    return self.focused
+  }
+  self.focused = focus
+}
+
 const getMediaType = (src: string) => {
   let type = 'auto'
   if (/m3u8(#|\?|$)/i.exec(src)) {
@@ -717,6 +761,35 @@ const getMediaType = (src: string) => {
     type = 'normal'
   }
   return type
+}
+
+const index = (id?: number) => {
+  if (id === undefined || id === null) {
+    return self.index
+  }
+  self.index = id
+  return self.index
+}
+
+/**
+ * 占用
+ * @param order {int} 创建顺序
+ * @param text {string} 占用文本
+ */
+const occupy = (order: number, unique: string, text: string) => {
+  if (self.status === 4) {
+    close()
+  }
+  if (self.status === 0) {
+    self.order = order
+    self.status = 1
+    self.unique = unique
+    self.title = text
+  }
+}
+
+const order = () => {
+  return self.order
 }
 
 /**
@@ -799,6 +872,13 @@ const snapshot = () => {
 }
 
 /**
+ * 状态
+ */
+const status = () => {
+  return self.status
+}
+
+/**
  * 切换暂停与播放
  */
 const toggle = () => {
@@ -858,6 +938,10 @@ const volume = (percentage?: number, nonotice?: boolean) => {
   }
 }
 
+const unique = () => {
+  return self.unique
+}
+
 watch(props, (newValue, oldValue) => {
   if (self.player) {
     self.player.options.controls = !props.lockControl
@@ -879,15 +963,22 @@ defineExpose({
   close,
   currentTime,
   currentUrl,
+  el,
+  focused,
+  index,
+  occupy,
+  order,
   pause,
   play,
   playRate,
   seek,
   snapshot,
+  status,
   toggle,
   toggleScreen,
   trigger,
-  volume
+  volume,
+  unique,
 })
 
 </script>

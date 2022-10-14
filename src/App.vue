@@ -6,7 +6,9 @@
       <button @click="toggleScreen">fullScreen</button>
       <button @click="toggleFill">toggleFill</button>
       <button @click="toggleControl">toggleControl</button>
+      <button @click="toggleFocus">toggleFocus</button>
       <button @click="snapshot">snapshot</button>
+      <button @click="occupy">occupy</button>
     </div>
     <div class="demo-control">
       <input type="checkbox" class="demo-check" name="options-live" v-model="options.live"/>
@@ -56,8 +58,9 @@ const options = reactive({
   title: 'ABC',
   record: true,
   // src: 'http://120.84.96.62:808/hls/1/index.m3u8?blog.ntnas.top'
-  src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8'
-  // src: 'https://www.transcodexx.cn/test/h264.flv'
+  src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8',
+  // src: 'https://www.transcodexx.cn/test/h264.flv',
+  unique: 'abcabc'
 })
 
 let self = reactive(_data)
@@ -68,8 +71,14 @@ const close = () => {
   player.value.close()
 }
 
+const occupy = () => {
+  player.value.occupy(1, '456', '占用中')
+}
+
 const play = () => {
   player.value.play(options)
+
+  console.log(player.value.unique())
 }
 
 const snapshot = () => {
@@ -84,12 +93,16 @@ const toggleFill = () => {
   self.filled = !self.filled
 }
 
+const toggleFocus = () => {
+  player.value.focused(!player.value.focused())
+}
+
 const toggleScreen = () => {
   player.value.toggleScreen()
 }
 
 onMounted(() => {
-  console.log(player.value)
+  console.log(player.value.el())
 })
 
 </script>

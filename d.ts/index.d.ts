@@ -1,5 +1,3 @@
-export as namespace V3dPlayer
-
 export type V3dPlayerEvents =
 'abort' |
 'canplay' |
@@ -83,9 +81,12 @@ export interface RecordParam {
 
 export interface V3dPlayerOptions {
   autoplay?: boolean | undefined
+  autoRate?: RateParam | undefined
+  connect?: boolean | undefined
   container?: HTMLElement | null
   controls?: boolean | undefined
   contextmenu?: DPlayerContextMenuItem[] | undefined
+  hasAudio?: boolean | undefined
   hotkey?: boolean | undefined
   lang?: string | undefined
   live?: boolean | undefined
@@ -93,17 +94,16 @@ export interface V3dPlayerOptions {
   loop?: boolean | undefined
   muted?: boolean | undefined
   mutex?: boolean | undefined
+  order?: number | undefined
   preload?: Preload | undefined
   screenshot?: boolean | undefined
   src: string
+  record?: boolean | undefined
   theme?: string | undefined
+  title?: string | undefined
   video?: DPlayerVideo | undefined
   volume?: number | undefined
-  autoRate?: RateParam | undefined
-  connect?: boolean | undefined
-  record?: boolean | undefined
-  hasAudio?: boolean | undefined
-  title?: string | undefined
+  unique?: string | undefined
 }
 
 declare const V3dPlayer: {
@@ -280,15 +280,22 @@ declare const V3dPlayer: {
             close: () => void;
             currentTime: () => number;
             currentUrl: () => string;
+            el: () => HTMLDivElement;
+            focused: (focus?: boolean) => boolean | undefined;
+            index: (id?: number) => number;
+            occupy: (order: number, unique: string, text: string) => void;
+            order: () => number;
             pause: () => void;
             play: (option: V3dPlayerOptions | undefined) => void;
             playRate: (rate: number) => number;
             seek: (time: number) => void;
             snapshot: () => void;
+            status: () => number;
             toggle: () => void;
             toggleScreen: () => void;
             trigger: (event: string) => void;
             volume: (percentage?: number, nonotice?: boolean) => number;
+            unique: () => string | undefined;
         }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, ("ready" | "progress" | "timeupdate" | "fetch_start" | "fetch_stop" | "abort" | "canplay" | "canplaythrough" | "durationchange" | "emptied" | "ended" | "error" | "loadeddata" | "loadedmetadata" | "loadstart" | "mozaudioavailable" | "pause" | "play" | "playing" | "ratechange" | "seeked" | "seeking" | "stalled" | "suspend" | "volumechange" | "waiting" | "screenshot" | "contextmenu_show" | "contextmenu_hide" | "notice_show" | "notice_hide" | "quality_start" | "quality_end" | "destroy" | "resize" | "fullscreen" | "fullscreen_cancel")[], string, {
             fill: boolean;
             lockControl: boolean;
@@ -392,15 +399,22 @@ declare const V3dPlayer: {
         close: () => void;
         currentTime: () => number;
         currentUrl: () => string;
+        el: () => HTMLDivElement;
+        focused: (focus?: boolean) => boolean | undefined;
+        index: (id?: number) => number;
+        occupy: (order: number, unique: string, text: string) => void;
+        order: () => number;
         pause: () => void;
         play: (option: V3dPlayerOptions | undefined) => void;
         playRate: (rate: number) => number;
         seek: (time: number) => void;
         snapshot: () => void;
+        status: () => number;
         toggle: () => void;
         toggleScreen: () => void;
         trigger: (event: string) => void;
         volume: (percentage?: number, nonotice?: boolean) => number;
+        unique: () => string | undefined;
     }> & {} & import("vue").ComponentCustomProperties;
     __isFragment?: undefined;
     __isTeleport?: undefined;
@@ -483,15 +497,22 @@ declare const V3dPlayer: {
     close: () => void;
     currentTime: () => number;
     currentUrl: () => string;
+    el: () => HTMLDivElement;
+    focused: (focus?: boolean) => boolean | undefined;
+    index: (id?: number) => number;
+    occupy: (order: number, unique: string, text: string) => void;
+    order: () => number;
     pause: () => void;
     play: (option: V3dPlayerOptions | undefined) => void;
     playRate: (rate: number) => number;
     seek: (time: number) => void;
     snapshot: () => void;
+    status: () => number;
     toggle: () => void;
     toggleScreen: () => void;
     trigger: (event: string) => void;
     volume: (percentage?: number, nonotice?: boolean) => number;
+    unique: () => string | undefined;
 }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, ("ready" | "progress" | "timeupdate" | "fetch_start" | "fetch_stop" | "abort" | "canplay" | "canplaythrough" | "durationchange" | "emptied" | "ended" | "error" | "loadeddata" | "loadedmetadata" | "loadstart" | "mozaudioavailable" | "pause" | "play" | "playing" | "ratechange" | "seeked" | "seeking" | "stalled" | "suspend" | "volumechange" | "waiting" | "screenshot" | "contextmenu_show" | "contextmenu_hide" | "notice_show" | "notice_hide" | "quality_start" | "quality_end" | "destroy" | "resize" | "fullscreen" | "fullscreen_cancel")[], "progress" | "ready" | "timeupdate" | "fetch_start" | "abort" | "fetch_stop" | "canplay" | "canplaythrough" | "durationchange" | "emptied" | "ended" | "error" | "loadeddata" | "loadedmetadata" | "loadstart" | "mozaudioavailable" | "pause" | "play" | "playing" | "ratechange" | "seeked" | "seeking" | "stalled" | "suspend" | "volumechange" | "waiting" | "screenshot" | "contextmenu_show" | "contextmenu_hide" | "notice_show" | "notice_hide" | "quality_start" | "quality_end" | "destroy" | "resize" | "fullscreen" | "fullscreen_cancel", {
     fill: boolean;
     lockControl: boolean;
@@ -499,3 +520,4 @@ declare const V3dPlayer: {
     poster: string;
 }> & import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps;
 export default V3dPlayer;
+    
