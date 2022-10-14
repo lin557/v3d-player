@@ -7,7 +7,7 @@
   "types": "d.ts/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "dts": "vue-tsc --declaration --emitDeclarationOnly ",
+    "dts": "vue-tsc --declaration --emitDeclarationOnly",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "publish:last": "npm run build && npm publish"
@@ -53,11 +53,9 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-vue": "^9.5.1",
     "prettier": "^2.7.1",
-    "rollup-plugin-node-resolve": "^5.2.0",
     "sass": "^1.55.0",
-    "svg-sprite-loader": "^6.0.11",
     "typescript": "^4.6.4",
-    "vite": "^3.1.4",
+    "vite": "^3.1.8",
     "vite-plugin-vue-setup-extend": "^0.4.0",
     "vue-tsc": "^1.0.7"
   }

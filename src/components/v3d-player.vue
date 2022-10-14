@@ -101,9 +101,9 @@ import flvjs from 'flv.js'
 import Hls from 'hls.js'
 import { Events, FragLoadedData, FragBufferedData } from 'hls.js'
 import V3dLoading from './v3d-loading.vue'
-import Fetcher from './utils/fetcher'
-import { V3dPlayerEvents, V3dPlayerOptions } from '../d.ts'
-import { merge } from './utils/utils'
+import Fetcher from '../utils/fetcher'
+import { V3dPlayerEvents, V3dPlayerOptions } from '../../d.ts'
+import { merge } from '../utils/utils'
 
 // 获取视频容器
 const refPlayer = ref()

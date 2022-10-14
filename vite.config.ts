@@ -1,7 +1,6 @@
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
 
 // https://vitejs.dev/config/
@@ -13,7 +12,7 @@ export default defineConfig({
   build: {
     lib: {
       // formats: ['es', 'umd'],
-      entry: path.resolve(__dirname, './lib/index.js'),
+      entry: './lib/index.js',
       name: 'v3d-player',
       // the proper extensions will be added
       fileName: (format) => `v3d-player.${format}.js`
