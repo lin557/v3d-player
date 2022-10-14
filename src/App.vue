@@ -9,6 +9,7 @@
       <button @click="toggleFocus">toggleFocus</button>
       <button @click="snapshot">snapshot</button>
       <button @click="occupy">occupy</button>
+      <button @click="muted">muted</button>
     </div>
     <div class="demo-control">
       <input type="checkbox" class="demo-check" name="options-live" v-model="options.live"/>
@@ -71,6 +72,10 @@ const close = () => {
   player.value.close()
 }
 
+const muted = () => {
+  player.value.muted()
+}
+
 const occupy = () => {
   player.value.occupy(1, '456', '占用中')
 }
@@ -78,7 +83,7 @@ const occupy = () => {
 const play = () => {
   player.value.play(options)
 
-  console.log(player.value.unique())
+  console.log(player.value.index())
 }
 
 const snapshot = () => {
@@ -102,7 +107,7 @@ const toggleScreen = () => {
 }
 
 onMounted(() => {
-  console.log(player.value.el())
+  player.value.el().classList.add('aaa')
 })
 
 </script>

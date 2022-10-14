@@ -1,6 +1,6 @@
 {
   "name": "v3d-player",
-  "version": "1.0.7",
+  "version": "1.0.10",
   "description": "Vue3 Dplayer-Lite",
   "main": "dist/v3d-player.umd.js",
   "module": "dist/v3d-player.es.js",
@@ -38,7 +38,7 @@
   "author": "lin557",
   "license": "MIT",
   "dependencies": {
-    "dplayer-lite": "^1.27.13",
+    "dplayer-lite": "^1.27.15",
     "flv.js": "^1.6.2",
     "hls.js": "^1.2.3",
     "vue": "^3.2.40"
@@ -59,6 +59,6 @@
     "typescript": "^4.6.4",
     "vite": "^3.1.4",
     "vite-plugin-vue-setup-extend": "^0.4.0",
-    "vue-tsc": "^1.0.6"
+    "vue-tsc": "^1.0.7"
   }
 }

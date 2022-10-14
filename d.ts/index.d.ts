@@ -112,6 +112,7 @@ declare const V3dPlayer: {
         $data: {};
         $props: Partial<{
             fill: boolean;
+            index: number;
             lockControl: boolean;
             options: Record<string, any>;
             poster: string;
@@ -119,6 +120,10 @@ declare const V3dPlayer: {
             fill: {
                 type: BooleanConstructor;
                 default: boolean;
+            };
+            index: {
+                type: NumberConstructor;
+                default: number;
             };
             /**
              * 锁定控制栏
@@ -188,7 +193,7 @@ declare const V3dPlayer: {
             onResize?: ((...args: any[]) => any) | undefined;
             onFullscreen?: ((...args: any[]) => any) | undefined;
             onFullscreen_cancel?: ((...args: any[]) => any) | undefined;
-        } & import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, "fill" | "lockControl" | "options" | "poster">;
+        } & import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, "fill" | "index" | "lockControl" | "options" | "poster">;
         $attrs: {
             [x: string]: unknown;
         };
@@ -206,6 +211,10 @@ declare const V3dPlayer: {
             fill: {
                 type: BooleanConstructor;
                 default: boolean;
+            };
+            index: {
+                type: NumberConstructor;
+                default: number;
             };
             /**
              * 锁定控制栏
@@ -280,9 +289,10 @@ declare const V3dPlayer: {
             close: () => void;
             currentTime: () => number;
             currentUrl: () => string;
-            el: () => HTMLDivElement;
+            el: () => any;
             focused: (focus?: boolean) => boolean | undefined;
-            index: (id?: number) => number;
+            index: () => number;
+            muted: () => void;
             occupy: (order: number, unique: string, text: string) => void;
             order: () => number;
             pause: () => void;
@@ -298,6 +308,7 @@ declare const V3dPlayer: {
             unique: () => string | undefined;
         }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, ("ready" | "progress" | "timeupdate" | "fetch_start" | "fetch_stop" | "abort" | "canplay" | "canplaythrough" | "durationchange" | "emptied" | "ended" | "error" | "loadeddata" | "loadedmetadata" | "loadstart" | "mozaudioavailable" | "pause" | "play" | "playing" | "ratechange" | "seeked" | "seeking" | "stalled" | "suspend" | "volumechange" | "waiting" | "screenshot" | "contextmenu_show" | "contextmenu_hide" | "notice_show" | "notice_hide" | "quality_start" | "quality_end" | "destroy" | "resize" | "fullscreen" | "fullscreen_cancel")[], string, {
             fill: boolean;
+            index: number;
             lockControl: boolean;
             options: Record<string, any>;
             poster: string;
@@ -325,6 +336,10 @@ declare const V3dPlayer: {
         fill: {
             type: BooleanConstructor;
             default: boolean;
+        };
+        index: {
+            type: NumberConstructor;
+            default: number;
         };
         /**
          * 锁定控制栏
@@ -399,9 +414,10 @@ declare const V3dPlayer: {
         close: () => void;
         currentTime: () => number;
         currentUrl: () => string;
-        el: () => HTMLDivElement;
+        el: () => any;
         focused: (focus?: boolean) => boolean | undefined;
-        index: (id?: number) => number;
+        index: () => number;
+        muted: () => void;
         occupy: (order: number, unique: string, text: string) => void;
         order: () => number;
         pause: () => void;
@@ -423,6 +439,10 @@ declare const V3dPlayer: {
     fill: {
         type: BooleanConstructor;
         default: boolean;
+    };
+    index: {
+        type: NumberConstructor;
+        default: number;
     };
     /**
      * 锁定控制栏
@@ -497,9 +517,10 @@ declare const V3dPlayer: {
     close: () => void;
     currentTime: () => number;
     currentUrl: () => string;
-    el: () => HTMLDivElement;
+    el: () => any;
     focused: (focus?: boolean) => boolean | undefined;
-    index: (id?: number) => number;
+    index: () => number;
+    muted: () => void;
     occupy: (order: number, unique: string, text: string) => void;
     order: () => number;
     pause: () => void;
@@ -515,6 +536,7 @@ declare const V3dPlayer: {
     unique: () => string | undefined;
 }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, ("ready" | "progress" | "timeupdate" | "fetch_start" | "fetch_stop" | "abort" | "canplay" | "canplaythrough" | "durationchange" | "emptied" | "ended" | "error" | "loadeddata" | "loadedmetadata" | "loadstart" | "mozaudioavailable" | "pause" | "play" | "playing" | "ratechange" | "seeked" | "seeking" | "stalled" | "suspend" | "volumechange" | "waiting" | "screenshot" | "contextmenu_show" | "contextmenu_hide" | "notice_show" | "notice_hide" | "quality_start" | "quality_end" | "destroy" | "resize" | "fullscreen" | "fullscreen_cancel")[], "progress" | "ready" | "timeupdate" | "fetch_start" | "abort" | "fetch_stop" | "canplay" | "canplaythrough" | "durationchange" | "emptied" | "ended" | "error" | "loadeddata" | "loadedmetadata" | "loadstart" | "mozaudioavailable" | "pause" | "play" | "playing" | "ratechange" | "seeked" | "seeking" | "stalled" | "suspend" | "volumechange" | "waiting" | "screenshot" | "contextmenu_show" | "contextmenu_hide" | "notice_show" | "notice_hide" | "quality_start" | "quality_end" | "destroy" | "resize" | "fullscreen" | "fullscreen_cancel", {
     fill: boolean;
+    index: number;
     lockControl: boolean;
     options: Record<string, any>;
     poster: string;

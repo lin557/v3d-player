@@ -28,7 +28,13 @@
     </div>
     <div class="v3d-video" ref="refVideo"></div>
     <div class="v3d-footer" ref="refFooter">
-      <button class="v3d-control v3d-button" type="button" title="Muted" aria-disabled="false" @click="toggleMuted()">
+      <button
+        v-if="vIfMuted"
+        class="v3d-control v3d-button"
+        type="button"
+        title="Muted"
+        aria-disabled="false"
+        @click="toggleMuted()">
         <svg v-if="!self.muted" class="svg-footer" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <path
             d="M849.27252859 201.31809659a42.88603022 42.88603022 0 0 0-32.59323734-5.87032651 42.89938015 42.89938015 0 0 0-27.05544533 19.10859851c-12.97370075 20.33193718-7.3849363 47.30971022 12.60233008 60.82226252 4.66640592 3.16757333 115.89313422 80.12504178 115.89313422 271.48288 0 191.84814459-106.68896711 268.85415822-110.9075437 271.75230578-20.06979318 13.67275141-25.43524978 40.927232-12.05255585 61.18392414a43.18458311 43.18458311 0 0 0 27.557888 18.63042845 43.18094222 43.18094222 0 0 0 32.62843258-6.47956859c6.12033422-4.08143645 149.61261985-103.92917333 149.61261986-345.13442134 0-241.57419141-149.29707615-341.37459675-155.68562252-345.49608296M714.11787852 330.760192a42.91030282 42.91030282 0 0 0-32.9197037-1.56315497 42.93578903 42.93578903 0 0 0-24.32235141 22.23248119c-10.28429748 21.73003852-1.53524148 47.70535348 19.80764918 58.78336475 2.76586192 1.44664652 67.80063289 35.71226548 67.80063289 133.42644148 0 104.33573925-60.82226252 138.9156883-62.81504237 140.04921837-21.5492077 11.09378845-30.20845511 37.42833778-19.44598756 59.1425991a43.42730903 43.42730903 0 0 0 58.28456297 19.76517216c4.53776118-2.35808237 110.77040355-58.14620918 110.77040356-218.90844445 0-155.23051141-112.40030815-210.65819022-117.15894993-212.96894104M516.60693808 862.43919645l-90.65206519-82.39331556-148.38321304-134.92648771a45.39460267 45.39460267 0 0 0-30.54705777-11.7843437l-138.32829156 0.04126341-0.44904297-291.06115319h182.10512593a45.41766163 45.41766163 0 0 0 38.83736177-11.010048l96.72385423-87.97358459 90.64356977-82.39331556v701.5009849h0.04975883z m53.837824-823.197696c-11.10107022-4.88850015-40.38109867-13.09749097-72.51072949 16.13520592l-71.98037334 65.44861866-143.94132858 130.84626489H108.24726755c-49.88867318 0.20024889-90.2224403 40.71241955-90.1945268 90.60109275v291.10363022c0 49.95299555 40.46969363 90.60352 90.1945268 90.60352h121.28043615L425.95365925 902.5496557l72.0689683 65.49109571c18.17531733 16.50172208 35.39550815 21.12079645 48.95053748 21.12079644 10.46270103 0 18.80397748-2.76586192 23.60995082-4.89578193 11.05859318-4.88971378 36.70744178-20.93511111 36.70744178-64.31023407v-816.57856c0-29.95844741-13.7746963-53.89243733-36.84579555-64.1354714z m0 0">
@@ -47,9 +53,8 @@
         {{ kbs }}
       </div>
       <button
-        v-if="recordCtrl"
-        class="v3d-control v3d-button v3d-record"
-        :class="recordCls"
+        v-if="vIfRecord"
+        :class="btnRecCls"
         type="button"
         title="Record"
         aria-disabled="false"
@@ -62,6 +67,7 @@
         </svg>
       </button>
       <button
+        v-if="vIfScreen"
         class="v3d-control v3d-button"
         type="button"
         title="Fullscreen"
@@ -152,6 +158,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  index: {
+    type: Number,
+    default: 0
+  },
   /**
    * 锁定控制栏
    */
@@ -201,7 +211,6 @@ interface Data {
   // 提示文本
   hint: string
   hls: Hls | undefined
-  index: number
   // last Decoded Count
   lastCount: number
   // last Decoded Frame
@@ -236,7 +245,6 @@ let _data: Data = {
   focused: false,
   hint: '',
   hls: undefined,
-  index: 0,
   lastCount: 0,
   lastFrame: 0,
   lastOptions: undefined,
@@ -287,6 +295,21 @@ const defaultOption = {
   volume: 0.7,
   unique: ''
 }
+
+const btnRecCls = computed(() => {
+  let cls = ''
+  if (
+    self.lastOptions &&
+    self.lastOptions.record
+  ) {
+    if (self.fetcher && self.fetcher.fetching) {
+      cls = 'v3d-fetching'
+    }
+  } else {
+    cls = 'v3d-hidden'
+  }
+  return 'v3d-control v3d-button v3d-record ' + cls
+})
 
 const fillCls = computed(() => {
   let cls = ''
@@ -352,26 +375,19 @@ const statusCls = computed(() => {
   }
 })
 
-const recordCtrl = computed(() => {
+const vIfMuted = computed(() => {
+  return self.status > 1
+})
+
+const vIfRecord = computed(() => {
   if (self.lastOptions && self.lastOptions.record) {
     return self.lastOptions.record
   } 
   return false
 })
 
-const recordCls = computed(() => {
-  let cls = ''
-  if (
-    self.lastOptions &&
-    self.lastOptions.record
-  ) {
-    if (self.fetcher && self.fetcher.fetching) {
-      cls = 'v3d-fetching'
-    }
-  } else {
-    cls = 'v3d-hidden'
-  }
-  return cls
+const vIfScreen = computed(() => {
+  return self.status > 1
 })
 
 const titleText = computed(() => {
@@ -713,7 +729,7 @@ const destoryPlayer = () => {
  * 获取el容器
  */
 const el = () => {
-  return refPlayer.value as HTMLDivElement
+  return refPlayer.value
 }
 
 /**
@@ -763,12 +779,18 @@ const getMediaType = (src: string) => {
   return type
 }
 
-const index = (id?: number) => {
-  if (id === undefined || id === null) {
-    return self.index
+const index = () => {
+  return props.index
+}
+
+/**
+ * 静音
+ */
+const muted = () => {
+  if (self.player) {
+    self.muted = true
+    self.player.muted(self.muted)
   }
-  self.index = id
-  return self.index
 }
 
 /**
@@ -893,7 +915,7 @@ const toggle = () => {
 const toggleMuted = () => {
   if (self.player) {
     self.muted = !self.muted
-    self.player.video.muted = self.muted
+    self.player.muted(self.muted)
   }
 }
 
@@ -945,6 +967,7 @@ const unique = () => {
 watch(props, (newValue, oldValue) => {
   if (self.player) {
     self.player.options.controls = !props.lockControl
+    self.player.controller.hide()
   }
 })
 
@@ -966,6 +989,7 @@ defineExpose({
   el,
   focused,
   index,
+  muted,
   occupy,
   order,
   pause,
