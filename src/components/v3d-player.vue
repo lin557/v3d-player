@@ -29,7 +29,6 @@
     <div class="v3d-video" ref="refVideo"></div>
     <div class="v3d-footer" ref="refFooter">
       <button
-        v-if="vIfMuted"
         class="v3d-control v3d-button"
         type="button"
         title="Muted"
@@ -228,6 +227,8 @@ interface Data {
   speed: string
   // 0=空闲 1=占用中 2=请求中 3=播放中/缓冲中 4=错误
   status: number
+  // 定时器句柄
+  timer: number
   // 标题
   title: string | undefined
   // 唯一标识
@@ -255,6 +256,7 @@ let _data: Data = {
   rate: 1.0,
   speed: '',
   status: 0,
+  timer: 0,
   title: '',
   unique: '',
 }
@@ -288,6 +290,8 @@ const defaultOption = {
   preload: 'metadata',
   preventClickToggle: false,
   record: false,
+  // 重试计数 达到5次不再试
+  replay: 0,
   screenshot: false,
   theme: '#b7daff',
   title: '',
@@ -375,10 +379,6 @@ const statusCls = computed(() => {
   }
 })
 
-const vIfMuted = computed(() => {
-  return self.status > 1
-})
-
 const vIfRecord = computed(() => {
   if (self.lastOptions && self.lastOptions.record) {
     return self.lastOptions.record
@@ -387,7 +387,7 @@ const vIfRecord = computed(() => {
 })
 
 const vIfScreen = computed(() => {
-  return self.status > 1
+  return self.status > 2
 })
 
 const titleText = computed(() => {
@@ -524,7 +524,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
             if (self.lastCount >= 30) {
               self.lastCount = 0
               self.lastFrame = 0
-              replay(300)
+              replay(300, 'no decoded frame')
             }
           }
         })
@@ -614,11 +614,11 @@ const createPlayer = (option: V3dPlayerOptions) => {
           break
         case 2:
           // MEDIA_ERR_NETWORK
-          replay(380)
+          replay(380, self.error.message)
           break
         case 3:
           // MEDIA_ERR_DECODE
-          replay(380)
+          replay(380, self.error.message)
           break
       }
       // console.log(self.error)
@@ -627,6 +627,9 @@ const createPlayer = (option: V3dPlayerOptions) => {
   })
   self.player.on('loadeddata', () => {
     self.status = 3
+    if (self.lastOptions) {
+      self.lastOptions.replay = 0
+    }
   })
   self.player.on('fullscreen', () => {
     if (props.lockControl) {
@@ -641,6 +644,9 @@ const createPlayer = (option: V3dPlayerOptions) => {
 
   self.player.on('canplay', () => {
     self.autoAudio = false
+    if (self.lastOptions) {
+      self.lastOptions.replay = 0
+    }
   })
 
   doTimeUpdate()
@@ -710,6 +716,10 @@ const destoryPlayer = () => {
     }   
     self.player.destroy()
     self.player = undefined
+  }
+  if (self.timer > 0) {
+    clearTimeout(self.timer)
+    self.timer = 0
   }
   self.status = 0
   self.autoAudio = true
@@ -862,14 +872,24 @@ const playRate = (rate: number) => {
 //   return pwd
 // }
 
-const replay = (time: number) => {
+const replay = (time: number, msg: string) => {
   if (self.lastOptions && self.lastOptions.connect) {
+    // 先占用 不被别人使用
     self.status = 1
-    setTimeout(() => {
-      window.console.warn(
-        currentUrl() + ' reconnect. '
-      )
-      play(self.lastOptions)
+    if (self.lastOptions.replay !== undefined) {
+      time = time + self.lastOptions.replay * 100
+    }
+    self.timer = setTimeout(() => {
+      if (self.lastOptions && self.lastOptions.replay !== undefined) {
+        self.lastOptions.replay++
+        if (self.lastOptions.replay < 6) {
+          window.console.warn(
+            self.lastOptions.replay + '. ' + currentUrl() + ' ' + msg + '. reconnect. '
+          )
+          play(self.lastOptions)
+        }
+      }
+      
     }, time)
   }
 }
@@ -913,7 +933,7 @@ const toggle = () => {
  * 静音切换
  */
 const toggleMuted = () => {
-  if (self.player) {
+  if (self.player && self.status > 1) {
     self.muted = !self.muted
     self.player.muted(self.muted)
   }

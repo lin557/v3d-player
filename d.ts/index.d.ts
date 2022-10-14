@@ -99,6 +99,7 @@ export interface V3dPlayerOptions {
   screenshot?: boolean | undefined
   src: string
   record?: boolean | undefined
+  replay?: number
   theme?: string | undefined
   title?: string | undefined
   video?: DPlayerVideo | undefined

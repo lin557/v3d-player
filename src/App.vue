@@ -12,13 +12,17 @@
       <button @click="muted">muted</button>
     </div>
     <div class="demo-control">
-      <input type="checkbox" class="demo-check" name="options-live" v-model="options.live"/>
+      <input type="checkbox" class="demo-check" name="options-live" v-model="self.live"/>
       <label for="options-live">live</label>
-      <input type="checkbox" class="demo-check" name="options-record" v-model="options.record"/>
+      <input type="checkbox" class="demo-check" name="options-record" v-model="self.record"/>
       <label for="options-record">record</label>
+      <input type="checkbox" class="demo-check" name="options-connect" v-model="self.connect"/>
+      <label for="options-connect">reconnect</label>
+      <input type="checkbox" class="demo-check" name="options-audio" v-model="self.hasAudio"/>
+      <label for="options-audio">hasAudio(flv)</label>
     </div>
     <div class="demo-control">
-      <input type="text" class="demo-url" v-model="options.src"/>
+      <input type="text" class="demo-url" v-model="self.src"/>
       <button @click="play">play</button>
       <button @click="close">close</button>
     </div>
@@ -26,43 +30,29 @@
 </template>
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import V3dPlayer from './v3d-player.vue'
+import V3dPlayer from './components/v3d-player.vue'
 
 interface Data {
   lockControl: boolean
   poster: string
   filled: boolean
+  src: string
+  live: boolean
+  record: boolean
+  connect: boolean
+  hasAudio: boolean
 }
 
 const _data: Data = {
   lockControl: true,
   filled: false,
-  poster: 'http://192.168.0.250/media/movie/%E5%BD%B1/poster.webp'
-}
-
-const options = reactive({
-  autoplay: true,
-  muted: false,
-  screenshot: true,
-  // controls: true,
-  preventClickToggle: true,
-  theme: '#FF3366',
-  volume: 0.6,
-  connect: true,
-  // hasAudio: false,
-  live: false,
-  // autoRate: {
-  //   enabled: true,
-  //   min: 3.0,
-  //   max: 9.0
-  // },
-  title: 'ABC',
-  record: true,
-  // src: 'http://120.84.96.62:808/hls/1/index.m3u8?blog.ntnas.top'
+  poster: 'http://192.168.0.250/media/movie/%E5%BD%B1/poster.webp',
   src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8',
-  // src: 'https://www.transcodexx.cn/test/h264.flv',
-  unique: 'abcabc'
-})
+  live: false,
+  record: true,
+  connect: true,
+  hasAudio: true,
+}
 
 let self = reactive(_data)
 
@@ -81,9 +71,30 @@ const occupy = () => {
 }
 
 const play = () => {
+  const options = {
+    autoplay: true,
+    muted: false,
+    screenshot: true,
+    // controls: true,
+    preventClickToggle: true,
+    theme: '#FF3366',
+    volume: 0.6,
+    connect: self.connect,
+    hasAudio: self.hasAudio,
+    live: self.live,
+    // autoRate: {
+    //   enabled: true,
+    //   min: 3.0,
+    //   max: 9.0
+    // },
+    title: 'ABC',
+    record: self.record,
+    // src: 'http://120.84.96.62:808/hls/1/index.m3u8?blog.ntnas.top'
+    src: self.src,
+    // src: 'https://www.transcode.cn/test/h264.flv',
+    // unique: 'abcabc',
+  }
   player.value.play(options)
-
-  console.log(player.value.index())
 }
 
 const snapshot = () => {
