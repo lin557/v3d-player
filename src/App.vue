@@ -1,6 +1,11 @@
 <template>
   <div class="demo-player">
-    <v3d-player ref="player" :fill="self.filled" :lock-control="self.lockControl" :poster="self.poster" />
+    <v3d-player
+      ref="player"
+      :fill="self.filled"
+      :lock-control="self.lockControl"
+      :poster="self.poster"
+    />
 
     <div class="demo-control">
       <button @click="toggleScreen">fullScreen</button>
@@ -12,17 +17,37 @@
       <button @click="muted">muted</button>
     </div>
     <div class="demo-control">
-      <input type="checkbox" class="demo-check" name="options-live" v-model="self.live"/>
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-live"
+        v-model="self.live"
+      />
       <label for="options-live">live</label>
-      <input type="checkbox" class="demo-check" name="options-record" v-model="self.record"/>
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-record"
+        v-model="self.record"
+      />
       <label for="options-record">record</label>
-      <input type="checkbox" class="demo-check" name="options-connect" v-model="self.connect"/>
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-connect"
+        v-model="self.connect"
+      />
       <label for="options-connect">reconnect</label>
-      <input type="checkbox" class="demo-check" name="options-audio" v-model="self.hasAudio"/>
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-audio"
+        v-model="self.hasAudio"
+      />
       <label for="options-audio">hasAudio(flv)</label>
     </div>
     <div class="demo-control">
-      <input type="text" class="demo-url" v-model="self.src"/>
+      <input type="text" class="demo-url" v-model="self.src" />
       <button @click="play">play</button>
       <button @click="close">close</button>
     </div>
@@ -51,7 +76,7 @@ const _data: Data = {
   live: false,
   record: true,
   connect: true,
-  hasAudio: true,
+  hasAudio: true
 }
 
 let self = reactive(_data)
@@ -90,7 +115,7 @@ const play = () => {
     title: 'ABC',
     record: self.record,
     // src: 'http://120.84.96.62:808/hls/1/index.m3u8?blog.ntnas.top'
-    src: self.src,
+    src: self.src
     // src: 'https://www.transcode.cn/test/h264.flv',
     // unique: 'abcabc',
   }
@@ -120,7 +145,6 @@ const toggleScreen = () => {
 onMounted(() => {
   player.value.el().classList.add('aaa')
 })
-
 </script>
 <style lang="scss">
 .demo-player {

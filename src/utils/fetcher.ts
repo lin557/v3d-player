@@ -27,7 +27,6 @@ const defaultOptions = {
  * http-flv 下载
  */
 class Fetcher {
-
   filename: string
   fetching: boolean
   controller: AbortController | undefined
@@ -52,7 +51,7 @@ class Fetcher {
 
     this.options = merge(options, defaultOptions)
 
-    player.on('ready', ()=> {
+    player.on('ready', () => {
       this.setup()
     })
   }
@@ -62,7 +61,7 @@ class Fetcher {
    *
    * @param {Blob} blob media data
    */
-   blob2File(blob: Blob) {
+  blob2File(blob: Blob) {
     if (blob !== null) {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -79,7 +78,7 @@ class Fetcher {
   }
 
   getUrl() {
-    let ret = this.player.options.video?.url
+    const ret = this.player.options.video?.url
     if (ret) {
       return ret
     }
@@ -87,8 +86,8 @@ class Fetcher {
   }
 
   /**
-  * init element
-  */
+   * init element
+   */
   setup() {
     if (this.el !== null) {
       return
@@ -104,57 +103,57 @@ class Fetcher {
       case 'top-left':
         div.style.top = offsetV + 'px'
         div.style.left = offsetH + 'px'
-        break;
+        break
       case 'top-right':
         div.style.top = offsetV + 'px'
         div.style.right = offsetH + 'px'
-        break;
+        break
       case 'bottom-left':
         div.style.bottom = offsetV + 'px'
         div.style.left = offsetH + 'px'
-        break;
+        break
       case 'bottom-right':
         div.style.bottom = offsetV + 'px'
         div.style.right = offsetH + 'px'
-        break;
+        break
       default:
         div.style.top = offsetV + 'px'
         div.style.right = offsetH + 'px'
-      }
-      div.innerHTML = '<span>REC</span>' + 
-                      '<span>' +
-                      '<svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
-                      '<path' +
-                      ' style="stroke: #fff; fill: #f00; stroke-width: 60px;" d="M512 512m-426.666667 0a426.666667 426.666667 0 1 0 853.333334 0 426.666667 426.666667 0 1 0-853.333334 0Z">' +
-                      '</path>' +
-                      '</svg>' + 
-                      '</span>'
-      const { opacity } = this.options
+    }
+    div.innerHTML =
+      '<span>REC</span>' +
+      '<span>' +
+      '<svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
+      '<path' +
+      ' style="stroke: #fff; fill: #f00; stroke-width: 60px;" d="M512 512m-426.666667 0a426.666667 426.666667 0 1 0 853.333334 0 426.666667 426.666667 0 1 0-853.333334 0Z">' +
+      '</path>' +
+      '</svg>' +
+      '</span>'
+    const { opacity } = this.options
 
-      if (opacity) {
-        div.style.opacity = opacity.toString()
-      }
-      this.el = div
-      this.player.video.parentElement?.append(div)
+    if (opacity) {
+      div.style.opacity = opacity.toString()
+    }
+    this.el = div
+    this.player.video.parentElement?.append(div)
 
-
-      this.player.on('timeupdate', () => {
-        if (this.fetching) {
-          this.flashCount++
-          if (this.flashCount % 2 === 0) {
-            this.flash = !this.flash
-            if (this.el) {
-              if (this.flash) {
-                if (this.options.opacity) {
-                  this.el.style.opacity = this.options.opacity.toString()
-                }
-              } else {
-                this.el.style.opacity = '0'
+    this.player.on('timeupdate', () => {
+      if (this.fetching) {
+        this.flashCount++
+        if (this.flashCount % 2 === 0) {
+          this.flash = !this.flash
+          if (this.el) {
+            if (this.flash) {
+              if (this.options.opacity) {
+                this.el.style.opacity = this.options.opacity.toString()
               }
+            } else {
+              this.el.style.opacity = '0'
             }
           }
         }
-      })
+      }
+    })
   }
 
   /**
@@ -171,12 +170,12 @@ class Fetcher {
    */
   hide() {
     if (this.el) {
-      this.el.classList.add('v3d-hidden');
+      this.el.classList.add('v3d-hidden')
     }
   }
 
   getName(url: string | undefined) {
-    let ret = 'unknow'
+    const ret = 'unknow'
     if (url) {
       const vlist = url.split('?')
       if (vlist.length > 0) {
@@ -187,7 +186,7 @@ class Fetcher {
             return sTmp
           }
         }
-      } 
+      }
     }
     return ret
   }
@@ -195,13 +194,14 @@ class Fetcher {
   /**
    * 利用fetch按帧下载数据并合并成blob
    */
-   fetchMedia() {
-    const that = this;
+  fetchMedia() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const that = this
     const url = that.getUrl()
 
     this.filename = this.getName(url)
-    this.controller = new window.AbortController();
-    const signal = this.controller.signal;
+    this.controller = new window.AbortController()
+    const signal = this.controller.signal
 
     fetch(url, { signal })
       .then((res: Response) => {
@@ -209,23 +209,24 @@ class Fetcher {
         // 自己读取每一帧
         if (res && res.body) {
           const reader = res.body.getReader()
-          let aType = res.headers.get('Content-Type')
+          const aType = res.headers.get('Content-Type')
           if (aType) {
             that.type = aType
           }
           that.data = []
-          return new Promise((resolve) => {
+          return new Promise(resolve => {
             /**
              * 读取所有数据
              */
             function push() {
-              reader.read()
-                .then(({done, value}) => {
+              reader
+                .read()
+                .then(({ done, value }) => {
                   if (value) {
                     that.data.push(value)
                     if (done) {
                       // 包装成 blob 对象并返回
-                      resolve(new Blob(that.data, {type: that.type }))
+                      resolve(new Blob(that.data, { type: that.type }))
                     } else {
                       push()
                     }
@@ -239,6 +240,7 @@ class Fetcher {
           })
         }
       })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .then((blob: any) => {
         // 成功
         this.fetching = false
@@ -284,7 +286,7 @@ class Fetcher {
         this.controller.abort()
         this.controller = undefined
       }
-      this.fetching = false;
+      this.fetching = false
       if (this.data.length > 0 && save) {
         let aType
         if (this.type === null) {
@@ -292,9 +294,9 @@ class Fetcher {
         } else {
           aType = this.type
         }
-        const blob = new window.Blob(this.data as BlobPart[], { type: aType });
+        const blob = new window.Blob(this.data as BlobPart[], { type: aType })
 
-        this.blob2File(blob);
+        this.blob2File(blob)
       }
       // 触发下载事件
       this.player.events.trigger('fetch_stop')

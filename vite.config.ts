@@ -1,13 +1,24 @@
-
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
+// 增加对vue文件检测
+import eslintPlugin from 'vite-plugin-eslint'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     VueSetupExtend(),
+    eslintPlugin({
+      include: [
+        'src/**/*.js',
+        'src/**/*.vue',
+        'src/**/*.ts',
+        'src/*.js',
+        'src/*.vue',
+        'src/*.ts'
+      ]
+    })
   ],
   build: {
     lib: {
@@ -15,7 +26,7 @@ export default defineConfig({
       entry: './lib/index.js',
       name: 'v3d-player',
       // the proper extensions will be added
-      fileName: (format) => `v3d-player.${format}.js`
+      fileName: format => `v3d-player.${format}.js`
     },
     rollupOptions: {
       // 确保外部化处理那些你不想打包进库的依赖
@@ -28,7 +39,7 @@ export default defineConfig({
           vue: 'Vue',
           'flv.js': 'flvjs',
           'hls.js': 'Hls'
-        },
+        }
       }
     }
   }
