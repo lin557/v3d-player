@@ -352,7 +352,7 @@ const defaultOption = {
   order: 0,
   playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2],
   pluginOptions: { hls: {}, flv: {}, dash: {}, webtorrent: {} },
-  preload: 'metadata',
+  preload: 'auto',
   preventClickToggle: false,
   record: false,
   // 重试计数 达到5次不再试

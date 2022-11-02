@@ -71,9 +71,9 @@ interface Data {
 const _data: Data = {
   lockControl: true,
   filled: false,
-  poster: 'http://192.168.0.250/media/movie/%E5%BD%B1/poster.webp',
-  src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8',
-  live: false,
+  poster: '',
+  src: 'https://www.trans.cn/live/17000071029_2.flv',
+  live: true,
   record: true,
   connect: true,
   hasAudio: true
@@ -116,7 +116,7 @@ const play = () => {
     record: self.record,
     // src: 'http://120.84.96.62:808/hls/1/index.m3u8?blog.ntnas.top'
     src: self.src
-    // src: 'https://www.transcode.cn/test/h264.flv',
+    // src: 'https://www.trans.cn/test/h264.flv',
     // unique: 'abcabc',
   }
   player.value.play(options)
