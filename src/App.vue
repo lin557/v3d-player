@@ -72,7 +72,7 @@ const _data: Data = {
   lockControl: true,
   filled: false,
   poster: '',
-  src: 'https://www.trans.cn/live/17000071029_2.flv',
+  src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8',
   live: true,
   record: true,
   connect: true,

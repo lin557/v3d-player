@@ -151,19 +151,13 @@
   </div>
 </template>
 <script lang="ts" setup name="V3dPlayer">
-import {
-  ref,
-  reactive,
-  computed,
-  watch,
-  defineEmits,
-  onMounted,
-  onBeforeUnmount
-} from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import Dplayer from 'dplayer-lite'
 import { DPlayerEvents, DPlayerOptions } from 'dplayer-lite'
 import flvjs from 'flv.js'
+// 这是hls的bug 在vite4时会出现错误
 import Hls from 'hls.js'
+// import Hls from 'hls.js/dist/hls.min.js'
 // import { Events, FragLoadedData, FragBufferedData } from 'hls.js'
 import V3dLoading from './v3d-loading.vue'
 import Fetcher from '../utils/fetcher'
@@ -491,8 +485,9 @@ const createPlayer = (option: V3dPlayerOptions) => {
   self.title = opts.title
 
   // console.log(opts)
-  const type = getMediaType(option.src)
+  let type = getMediaType(option.src)
   if (type === 'hls') {
+    type = 'customHls'
     opts.record = false
   }
   opts.container = refVideo.value
@@ -595,8 +590,15 @@ const createPlayer = (option: V3dPlayerOptions) => {
 
         self.flv = flvPlayer
       },
-      hls: (video: HTMLMediaElement) => {
-        const hls = new Hls()
+      customHls: (video: HTMLMediaElement) => {
+        const hls = new Hls({
+          debug: false,
+          // vite4时会出现 这里先改为false, hls官方bug 他们修复中
+          // @see https://github.com/video-dev/hls.js/issues/5156
+          // @see https://github.com/video-dev/hls.js/issues/5107
+          // @see https://github.com/video-dev/hls.js/issues/2910
+          enableWorker: false
+        })
         hls.on(Hls.Events.ERROR, (event, data) => {
           // NETWORK_ERROR = "networkError",
           // MEDIA_ERROR = "mediaError",
