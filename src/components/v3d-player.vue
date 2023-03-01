@@ -1346,6 +1346,7 @@ $footerColor: rgba(30, 30, 30, 72%);
   .svg-footer {
     width: 16px;
     height: 16px;
+    display: inline !important;
     path {
       transition: fill 0.1s;
       fill: #aaa;
