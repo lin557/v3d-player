@@ -2,6 +2,7 @@
   <div class="demo-player">
     <v3d-player
       ref="player"
+      :close-time="0"
       :fill="self.filled"
       :lock-control="self.lockControl"
       :poster="self.poster"

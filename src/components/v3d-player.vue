@@ -212,6 +212,10 @@ const emits = defineEmits([
 ])
 
 const props = defineProps({
+  closeTime: {
+    type: Number,
+    default: 0
+  },
   fill: {
     type: Boolean,
     default: false
@@ -287,7 +291,9 @@ interface Data {
   // 0=空闲 1=占用中 2=请求中 3=播放中/缓冲中 4=错误
   status: number
   // 定时器句柄
-  timer: number
+  timerConnect: number
+  // 定时关闭的定时器句柄
+  timerClose: number
   // 标题
   title: string | undefined
   // 唯一标识
@@ -315,7 +321,8 @@ let _data: Data = {
   rate: 1.0,
   speed: '',
   status: 0,
-  timer: 0,
+  timerConnect: 0,
+  timerClose: 0,
   title: '',
   unique: ''
 }
@@ -701,6 +708,12 @@ const createPlayer = (option: V3dPlayerOptions) => {
     if (self.lastOptions) {
       self.lastOptions.replay = 0
     }
+    if (props.closeTime > 0 && self.timerClose === 0) {
+      // 启用了定时关闭 但还没有创建定时器
+      self.timerClose = setTimeout(() => {
+        close()
+      }, props.closeTime * 1000)
+    }
   })
   self.player.on('fullscreen', () => {
     if (props.lockControl) {
@@ -792,9 +805,13 @@ const destoryPlayer = () => {
     self.player.destroy()
     self.player = undefined
   }
-  if (self.timer > 0) {
-    clearTimeout(self.timer)
-    self.timer = 0
+  if (self.timerConnect > 0) {
+    clearTimeout(self.timerConnect)
+    self.timerConnect = 0
+  }
+  if (self.timerClose > 0) {
+    clearTimeout(self.timerClose)
+    self.timerClose = 0
   }
   self.status = 0
   self.autoAudio = true
@@ -951,7 +968,7 @@ const replay = (time: number, msg: string) => {
     if (self.lastOptions.replay !== undefined) {
       time = time + self.lastOptions.replay * 100
     }
-    self.timer = setTimeout(() => {
+    self.timerConnect = setTimeout(() => {
       if (self.lastOptions && self.lastOptions.replay !== undefined) {
         self.lastOptions.replay++
         if (self.lastOptions.replay < 6) {
