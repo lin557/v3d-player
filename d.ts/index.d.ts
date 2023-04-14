@@ -89,6 +89,7 @@ export interface RecordParam {
 export interface V3dPlayerOptions {
   autoplay?: boolean | undefined
   autoRate?: RateParam | undefined
+  closeTime?: number | undefined
   connect?: boolean | undefined
   container?: HTMLElement | null
   controls?: boolean | undefined
@@ -117,9 +118,9 @@ export interface V3dPlayerOptions {
 
 declare const V3dPlayer: import('vue').DefineComponent<
   {
-    closeTime: {
-      type: NumberConstructor
-      default: number
+    border: {
+      type: BooleanConstructor
+      default: boolean
     }
     fill: {
       type: BooleanConstructor
@@ -139,6 +140,7 @@ declare const V3dPlayer: import('vue').DefineComponent<
     options: {
       type: ObjectConstructor
       default(): {
+        allowPause: boolean
         autoplay: boolean
         controls: boolean
         contextmenu: never[]
@@ -158,6 +160,13 @@ declare const V3dPlayer: import('vue').DefineComponent<
     poster: {
       type: StringConstructor
       default: string
+    }
+    custom: {
+      type: ObjectConstructor
+      default(): {
+        empty: string
+        loading: string
+      }
     }
   },
   {
@@ -269,9 +278,9 @@ declare const V3dPlayer: import('vue').DefineComponent<
     import('vue').ComponentCustomProps,
   Readonly<
     import('vue').ExtractPropTypes<{
-      closeTime: {
-        type: NumberConstructor
-        default: number
+      border: {
+        type: BooleanConstructor
+        default: boolean
       }
       fill: {
         type: BooleanConstructor
@@ -291,6 +300,7 @@ declare const V3dPlayer: import('vue').DefineComponent<
       options: {
         type: ObjectConstructor
         default(): {
+          allowPause: boolean
           autoplay: boolean
           controls: boolean
           contextmenu: never[]
@@ -310,6 +320,13 @@ declare const V3dPlayer: import('vue').DefineComponent<
       poster: {
         type: StringConstructor
         default: string
+      }
+      custom: {
+        type: ObjectConstructor
+        default(): {
+          empty: string
+          loading: string
+        }
       }
     }>
   > & {
@@ -353,11 +370,12 @@ declare const V3dPlayer: import('vue').DefineComponent<
   },
   {
     fill: boolean
-    closeTime: number
+    border: boolean
     index: number
     lockControl: boolean
     options: Record<string, any>
     poster: string
+    custom: Record<string, any>
   }
 >
 export default V3dPlayer

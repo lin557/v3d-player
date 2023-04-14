@@ -1,25 +1,39 @@
 <template>
   <div class="v3d-player" :class="fillCls" ref="refPlayer">
-    <div class="v3d-focus" :class="focusCls"></div>
     <div class="v3d-shade" :class="statusCls" :style="posterImg">
-      <div class="v3d-center" v-if="isReady">
-        <svg
-          class="svg-center"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-        >
-          <path
-            d="M512 12C236.31 12 12 236.31 12 512s224.31 500 500 500 500-224.31 500-500S787.69 12 512 12z m0 944.44C266.94 956.44 67.56 757.06 67.56 512S266.94 67.56 512 67.56 956.44 266.94 956.44 512 757.06 956.44 512 956.44z"
-            p-id="1737"
-          ></path>
-          <path
-            d="M749.63 488.89L416.3 266.67a27.78 27.78 0 0 0-43.19 23.11v444.44a27.78 27.78 0 0 0 43.19 23.11l333.33-222.22a27.78 27.78 0 0 0 0-46.22z m-321 193.44V341.67L684.15 512z"
-          ></path>
-        </svg>
-      </div>
-      <V3dLoading v-if="isLoading" />
+      <template v-if="isReady">
+        <template v-if="isCustomEmpty">
+          <div class="v3d-custom" v-html="props.custom.empty"></div>
+        </template>
+        <template v-else>
+          <div class="v3d-center">
+            <svg
+              class="svg-center"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+            >
+              <path
+                d="M512 12C236.31 12 12 236.31 12 512s224.31 500 500 500 500-224.31 500-500S787.69 12 512 12z m0 944.44C266.94 956.44 67.56 757.06 67.56 512S266.94 67.56 512 67.56 956.44 266.94 956.44 512 757.06 956.44 512 956.44z"
+                p-id="1737"
+              ></path>
+              <path
+                d="M749.63 488.89L416.3 266.67a27.78 27.78 0 0 0-43.19 23.11v444.44a27.78 27.78 0 0 0 43.19 23.11l333.33-222.22a27.78 27.78 0 0 0 0-46.22z m-321 193.44V341.67L684.15 512z"
+              ></path>
+            </svg>
+          </div>
+        </template>
+      </template>
+      <template v-if="isLoading">
+        <template v-if="isCustomLoading">
+          <div class="v3d-custom" v-html="props.custom.loading"></div>
+        </template>
+        <template v-else>
+          <V3dLoading />
+        </template>
+      </template>
+
       <div class="v3d-error" v-if="isError">
         <div class="v3d-error-svg">
           <svg
@@ -43,6 +57,49 @@
     </div>
     <div class="v3d-video" ref="refVideo"></div>
     <div class="v3d-footer" ref="refFooter">
+      <button
+        class="v3d-control v3d-button"
+        type="button"
+        title="Pause"
+        aria-disabled="false"
+        v-if="self.allowPause"
+        @click="toggle()"
+      >
+        <svg
+          v-if="!self.paused"
+          class="svg-footer"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <path
+            d="M874.058005 149.941995a510.06838 510.06838 0 1 0 109.740156 162.738976 511.396369 511.396369 0 0 0-109.740156-162.738976z m66.278708 362.178731A428.336713 428.336713 0 1 1 512 83.663287a428.698892 428.698892 0 0 1 428.336713 428.336713z"
+          ></path>
+          <path
+            d="M417.954256 281.533601a41.046923 41.046923 0 0 0-41.77128 40.201839v385.116718a41.892007 41.892007 0 0 0 83.663287 0v-385.116718a41.167649 41.167649 0 0 0-41.892007-40.201839zM606.045744 281.533601a41.046923 41.046923 0 0 0-41.77128 40.201839v385.116718a41.892007 41.892007 0 0 0 83.663287 0v-385.116718a41.167649 41.167649 0 0 0-41.892007-40.201839z"
+          ></path>
+        </svg>
+        <svg
+          v-if="self.paused"
+          class="svg-footer"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <path
+            d="M400.43759 732.273456a71.33239 71.33239 0 0 0 34.157473 8.810938 75.556813 75.556813 0 0 0 41.157944-12.069778l219.790665-144.837341a85.574729 85.574729 0 0 0 38.502593-72.418671 83.402169 83.402169 0 0 0-37.295615-70.608203l-221.842527-144.837341a72.41867 72.41867 0 0 0-74.591231-3.741631 84.488449 84.488449 0 0 0-41.761433 75.436115v289.674681a84.488449 84.488449 0 0 0 41.882131 74.591231z m42.002829-82.315889V374.163131l207.600188 135.664309v0.965582a13.156058 13.156058 0 0 1 0 2.293258z"
+            fill="#4D4D4D"
+            p-id="1454"
+          ></path>
+          <path
+            d="M149.989688 874.093352a509.948138 509.948138 0 1 0-109.714286-162.700613 513.206978 513.206978 0 0 0 109.714286 162.700613zM84.571489 512a428.11504 428.11504 0 1 1 427.511551 428.11504A428.597831 428.597831 0 0 1 84.571489 512z"
+            fill="#4D4D4D"
+            p-id="1455"
+          ></path>
+        </svg>
+      </button>
       <button
         class="v3d-control v3d-button"
         type="button"
@@ -212,9 +269,9 @@ const emits = defineEmits([
 ])
 
 const props = defineProps({
-  closeTime: {
-    type: Number,
-    default: 0
+  border: {
+    type: Boolean,
+    default: false
   },
   fill: {
     type: Boolean,
@@ -235,6 +292,7 @@ const props = defineProps({
     type: Object,
     default() {
       return {
+        allowPause: false,
         autoplay: false,
         controls: true,
         contextmenu: [],
@@ -255,6 +313,15 @@ const props = defineProps({
   poster: {
     type: String,
     default: ''
+  },
+  custom: {
+    type: Object,
+    default() {
+      return {
+        empty: '',
+        loading: ''
+      }
+    }
   }
 })
 
@@ -264,6 +331,7 @@ interface MediaErrorX {
 }
 
 interface Data {
+  allowPause: boolean
   // 当http-flv头有音视频 但http-flv没有音频流时 自动重置播放器
   autoAudio: boolean
   error: MediaErrorX | undefined
@@ -281,7 +349,8 @@ interface Data {
   muted: boolean
   // 创建时间(或占用时间)
   order: number
-
+  // 手动暂停
+  paused: boolean
   player: Dplayer | undefined
   progress: number
   // 播放速率 1.0
@@ -298,12 +367,15 @@ interface Data {
   title: string | undefined
   // 唯一标识
   unique: string | undefined
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  userData: any | undefined
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
 const ERR_MAX_AUDIO_COUNT = 10
 
 let _data: Data = {
+  allowPause: false,
   autoAudio: true,
   error: undefined,
   fetcher: undefined,
@@ -316,6 +388,7 @@ let _data: Data = {
   lastOptions: undefined,
   muted: false,
   order: 0,
+  paused: false,
   player: undefined,
   progress: 0,
   rate: 1.0,
@@ -324,13 +397,15 @@ let _data: Data = {
   timerConnect: 0,
   timerClose: 0,
   title: '',
-  unique: ''
+  unique: '',
+  userData: undefined
 }
 
 let self = reactive(_data)
 
 const defaultOption = {
   airplay: true,
+  allowPause: false,
   autoplay: false,
   autoRate: {
     enabled: false,
@@ -386,19 +461,16 @@ const fillCls = computed(() => {
       cls = 'v3d-footer-show'
     }
   }
+  if (props.border) {
+    cls = cls + ' v3d-border'
+  }
   if (props.fill) {
-    return cls + ' v3d-fill'
-  } else {
-    return cls
+    cls = cls + ' v3d-fill'
   }
-})
-
-const focusCls = computed(() => {
   if (self.focused) {
-    return 'v3d-focus-show'
-  } else {
-    return ''
+    cls = cls + ' v3d-focus'
   }
+  return cls
 })
 
 const isReady = computed(() => {
@@ -407,6 +479,14 @@ const isReady = computed(() => {
 
 const isLoading = computed(() => {
   return self.status > 0 && self.status < 3
+})
+
+const isCustomEmpty = computed(() => {
+  return props.custom.empty && props.custom.empty !== ''
+})
+
+const isCustomLoading = computed(() => {
+  return props.custom.loading && props.custom.loading !== ''
 })
 
 const isError = computed(() => {
@@ -490,6 +570,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
   self.order === opts.order
   self.unique = opts.unique
   self.title = opts.title
+  self.allowPause = opts.allowPause
 
   // console.log(opts)
   let type = getMediaType(option.src)
@@ -675,7 +756,12 @@ const createPlayer = (option: V3dPlayerOptions) => {
   })
   self.player.on('pause', () => {
     // 实时流不允许隐藏时暂停
-    if (self.player && self.lastOptions && self.lastOptions.live) {
+    if (
+      self.player &&
+      self.lastOptions &&
+      self.lastOptions.live &&
+      !self.paused
+    ) {
       self.player.play()
     }
   })
@@ -707,12 +793,13 @@ const createPlayer = (option: V3dPlayerOptions) => {
     self.status = 3
     if (self.lastOptions) {
       self.lastOptions.replay = 0
-    }
-    if (props.closeTime > 0 && self.timerClose === 0) {
-      // 启用了定时关闭 但还没有创建定时器
-      self.timerClose = setTimeout(() => {
-        close()
-      }, props.closeTime * 1000)
+
+      if (self.lastOptions.closeTime && self.timerClose === 0) {
+        // 启用了定时关闭 但还没有创建定时器
+        self.timerClose = setTimeout(() => {
+          close()
+        }, self.lastOptions.closeTime * 1000)
+      }
     }
   })
   self.player.on('fullscreen', () => {
@@ -825,6 +912,8 @@ const destoryPlayer = () => {
   self.lastCount = 0
   self.lastFrame = 0
   self.progress = 0
+  self.allowPause = false
+  self.paused = false
 }
 
 /**
@@ -909,6 +998,7 @@ const occupy = (order: number, unique: string, text: string) => {
     self.status = 1
     self.unique = unique
     self.title = text
+    self.allowPause = false
   }
 }
 
@@ -921,6 +1011,7 @@ const order = () => {
  */
 const pause = () => {
   if (self.player) {
+    self.paused = true
     self.player.pause()
   }
 }
@@ -966,7 +1057,7 @@ const replay = (time: number, msg: string) => {
     // 先占用 不被别人使用
     self.status = 1
     if (self.lastOptions.replay !== undefined) {
-      time = time + self.lastOptions.replay * 100
+      time = time + self.lastOptions.replay * 1000
     }
     self.timerConnect = setTimeout(() => {
       if (self.lastOptions && self.lastOptions.replay !== undefined) {
@@ -1018,6 +1109,11 @@ const status = () => {
  */
 const toggle = () => {
   if (self.player) {
+    if (self.allowPause && !self.player.paused) {
+      self.paused = true
+    } else {
+      self.paused = false
+    }
     self.player.toggle()
   }
 }
@@ -1126,7 +1222,8 @@ $footerColor: rgba(30, 30, 30, 72%);
   width: 100%;
   height: 100%;
   position: relative;
-  background-color: black;
+  background-color: #000;
+  box-sizing: border-box;
 
   .dplayer {
     width: 100%;
@@ -1149,21 +1246,6 @@ $footerColor: rgba(30, 30, 30, 72%);
     display: none;
   }
 
-  .v3d-focus {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border: 1px green solid;
-    box-sizing: border-box;
-    z-index: 6;
-    display: none;
-    pointer-events: none;
-  }
-
-  .v3d-focus-show {
-    display: block;
-  }
-
   .v3d-loading {
     .v3d-shade {
       display: block;
@@ -1177,12 +1259,18 @@ $footerColor: rgba(30, 30, 30, 72%);
     top: 0;
     bottom: 0;
     z-index: 5;
-    background-color: #000;
+    //background: linear-gradient(to right, #35414b, #222b32, #35414b);
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
     box-sizing: border-box;
     pointer-events: none;
+
+    .v3d-custom {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
 
     .v3d-chase {
       left: calc(50% - 15px);
@@ -1375,6 +1463,14 @@ $footerColor: rgba(30, 30, 30, 72%);
     fill: #aaa;
     width: 72px;
     height: 72px;
+  }
+
+  &.v3d-border {
+    border: 1px solid black;
+  }
+
+  &.v3d-focus {
+    border-color: #2d4edf !important;
   }
 }
 </style>

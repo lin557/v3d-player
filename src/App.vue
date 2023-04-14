@@ -2,7 +2,8 @@
   <div class="demo-player">
     <v3d-player
       ref="player"
-      :close-time="0"
+      :border="self.border"
+      :custom="custom"
       :fill="self.filled"
       :lock-control="self.lockControl"
       :poster="self.poster"
@@ -18,6 +19,13 @@
       <button @click="muted">muted</button>
     </div>
     <div class="demo-control">
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-border"
+        v-model="self.border"
+      />
+      <label for="options-border">border</label>
       <input
         type="checkbox"
         class="demo-check"
@@ -63,6 +71,7 @@ interface Data {
   poster: string
   filled: boolean
   src: string
+  border: boolean
   live: boolean
   record: boolean
   connect: boolean
@@ -73,6 +82,7 @@ const _data: Data = {
   lockControl: true,
   filled: false,
   poster: '',
+  border: false,
   src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8',
   live: true,
   record: true,
@@ -81,6 +91,11 @@ const _data: Data = {
 }
 
 let self = reactive(_data)
+
+const custom = reactive({
+  empty: '',
+  loading: ''
+})
 
 const player = ref()
 
@@ -98,9 +113,11 @@ const occupy = () => {
 
 const play = () => {
   const options = {
+    allowPause: true,
     autoplay: true,
     muted: false,
     screenshot: true,
+    closeTime: 0,
     // controls: true,
     preventClickToggle: true,
     theme: '#FF3366',
@@ -108,6 +125,7 @@ const play = () => {
     connect: self.connect,
     hasAudio: self.hasAudio,
     live: self.live,
+    debug: false,
     // autoRate: {
     //   enabled: true,
     //   min: 3.0,
@@ -116,9 +134,26 @@ const play = () => {
     title: 'ABC',
     record: self.record,
     // src: 'http://120.84.96.62:808/hls/1/index.m3u8?blog.ntnas.top'
-    src: self.src
+    src: self.src,
     // src: 'https://www.trans.cn/test/h264.flv',
     // unique: 'abcabc',
+    contextmenu: [
+      {
+        text: 'custom1',
+        link: 'https://github.com/DIYgod/DPlayer'
+      },
+      {
+        text: 'custom2',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        click: (player: any) => {
+          console.log(player.options)
+        }
+      }
+    ],
+    userData: {
+      test1: '1',
+      test2: '2'
+    }
   }
   player.value.play(options)
 }
