@@ -94,6 +94,7 @@ export interface V3dPlayerOptions {
   container?: HTMLElement | null
   controls?: boolean | undefined
   contextmenu?: DPlayerContextMenuItem[] | undefined
+  debug?: boolean | undefined
   hasAudio?: boolean | undefined
   hotkey?: boolean | undefined
   lang?: string | undefined

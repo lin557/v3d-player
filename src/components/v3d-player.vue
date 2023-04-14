@@ -1350,10 +1350,10 @@ $footerColor: rgba(30, 30, 30, 72%);
     .v3d-button:hover {
       .svg-footer {
         background-color: #555;
-        box-shadow: 0px 0px 10px #ccc;
+        box-shadow: 0px 0px 8px #ccc;
         transform: scale(1.05);
         path {
-          fill: #fff;
+          fill: #ddd;
         }
       }
     }
@@ -1361,10 +1361,10 @@ $footerColor: rgba(30, 30, 30, 72%);
     .v3d-button:active {
       .svg-footer {
         background-color: #555;
-        box-shadow: 0px 0px 10px #ccc;
+        box-shadow: 0px 0px 8px #ccc;
         transform: scale(0.95);
         path {
-          fill: #fff;
+          fill: #eee;
         }
       }
     }
