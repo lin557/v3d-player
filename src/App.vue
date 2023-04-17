@@ -3,11 +3,17 @@
     <v3d-player
       ref="player"
       :border="self.border"
-      :custom="custom"
       :fill="self.filled"
       :lock-control="self.lockControl"
       :poster="self.poster"
-    />
+    >
+      <template v-slot:ready>
+        <div>abcdefg</div>
+      </template>
+      <template v-slot:loading>
+        <div>1234567</div>
+      </template>
+    </v3d-player>
 
     <div class="demo-control">
       <button @click="toggleScreen">fullScreen</button>
@@ -91,11 +97,6 @@ const _data: Data = {
 }
 
 let self = reactive(_data)
-
-const custom = reactive({
-  empty: '',
-  loading: ''
-})
 
 const player = ref()
 

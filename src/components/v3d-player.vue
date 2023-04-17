@@ -2,58 +2,43 @@
   <div class="v3d-player" :class="fillCls" ref="refPlayer">
     <div class="v3d-shade" :class="statusCls" :style="posterImg">
       <template v-if="isReady">
-        <template v-if="isCustomEmpty">
-          <div class="v3d-custom" v-html="props.custom.empty"></div>
+        <template v-if="slots.ready">
+          <slot name="ready"></slot>
         </template>
         <template v-else>
-          <div class="v3d-center">
+          <v3d-ready />
+        </template>
+      </template>
+      <template v-if="isLoading">
+        <template v-if="slots.loading">
+          <slot name="loading"></slot>
+        </template>
+        <template v-else>
+          <v3d-loading />
+        </template>
+      </template>
+      <template v-if="isError">
+        <div class="v3d-error">
+          <div class="v3d-error-svg">
             <svg
-              class="svg-center"
               viewBox="0 0 1024 1024"
               version="1.1"
               xmlns="http://www.w3.org/2000/svg"
               xmlns:xlink="http://www.w3.org/1999/xlink"
             >
               <path
-                d="M512 12C236.31 12 12 236.31 12 512s224.31 500 500 500 500-224.31 500-500S787.69 12 512 12z m0 944.44C266.94 956.44 67.56 757.06 67.56 512S266.94 67.56 512 67.56 956.44 266.94 956.44 512 757.06 956.44 512 956.44z"
-                p-id="1737"
+                d="M512 1021.72444445c-281.07603513 0-509.72444445-228.64840931-509.72444445-509.72444445S230.92396487 2.27555555 512 2.27555555 1021.72444445 230.92396487 1021.72444445 512 793.07603513 1021.72444445 512 1021.72444445zM512 75.42018617c-240.73610126 0-436.57981383 195.84371143-436.57981383 436.57981383 0 240.69891527 195.84371143 436.57981383 436.57981383 436.57981383 240.69891527 0 436.57981383-195.87894158 436.57981383-436.57981383C948.57981383 271.26389874 752.69891527 75.42018617 512 75.42018617z"
               ></path>
               <path
-                d="M749.63 488.89L416.3 266.67a27.78 27.78 0 0 0-43.19 23.11v444.44a27.78 27.78 0 0 0 43.19 23.11l333.33-222.22a27.78 27.78 0 0 0 0-46.22z m-321 193.44V341.67L684.15 512z"
+                d="M563.26308978 513.56576313l157.43162481-155.72102827c14.30911886-14.12709945 14.41872213-37.17317746 0.29162383-51.48229632s-37.21036345-14.41872213-51.48229632-0.29162382l-157.65083136 155.90304768-155.24738503-155.72102827c-14.23670272-14.23670272-37.2455936-14.30911886-51.48229632-0.07241614-14.23670272 14.19951559-14.27193173 37.2455936-0.07241614 51.48229632l155.02817848 155.50182172-156.30427477 154.62890838c-14.30911886 14.16232846-14.41872213 37.17317746-0.29162382 51.48229632 7.13596587 7.20838315 16.49335865 10.81355264 25.88598158 10.81355264 9.24778951 0 18.49557902-3.53079637 25.59631474-10.52192882l156.52152433-154.81092778 157.79566479 158.30649514c7.10073685 7.13596587 16.42094251 10.70394937 25.77833529 10.70394937 9.32020565 0 18.60518229-3.5679835 25.70396103-10.63153209 14.23670272-14.19951559 14.27193173-37.21036345 0.07241614-51.48229632L563.26308978 513.56576313z"
               ></path>
             </svg>
           </div>
-        </template>
-      </template>
-      <template v-if="isLoading">
-        <template v-if="isCustomLoading">
-          <div class="v3d-custom" v-html="props.custom.loading"></div>
-        </template>
-        <template v-else>
-          <V3dLoading />
-        </template>
-      </template>
-
-      <div class="v3d-error" v-if="isError">
-        <div class="v3d-error-svg">
-          <svg
-            viewBox="0 0 1024 1024"
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-          >
-            <path
-              d="M512 1021.72444445c-281.07603513 0-509.72444445-228.64840931-509.72444445-509.72444445S230.92396487 2.27555555 512 2.27555555 1021.72444445 230.92396487 1021.72444445 512 793.07603513 1021.72444445 512 1021.72444445zM512 75.42018617c-240.73610126 0-436.57981383 195.84371143-436.57981383 436.57981383 0 240.69891527 195.84371143 436.57981383 436.57981383 436.57981383 240.69891527 0 436.57981383-195.87894158 436.57981383-436.57981383C948.57981383 271.26389874 752.69891527 75.42018617 512 75.42018617z"
-            ></path>
-            <path
-              d="M563.26308978 513.56576313l157.43162481-155.72102827c14.30911886-14.12709945 14.41872213-37.17317746 0.29162383-51.48229632s-37.21036345-14.41872213-51.48229632-0.29162382l-157.65083136 155.90304768-155.24738503-155.72102827c-14.23670272-14.23670272-37.2455936-14.30911886-51.48229632-0.07241614-14.23670272 14.19951559-14.27193173 37.2455936-0.07241614 51.48229632l155.02817848 155.50182172-156.30427477 154.62890838c-14.30911886 14.16232846-14.41872213 37.17317746-0.29162382 51.48229632 7.13596587 7.20838315 16.49335865 10.81355264 25.88598158 10.81355264 9.24778951 0 18.49557902-3.53079637 25.59631474-10.52192882l156.52152433-154.81092778 157.79566479 158.30649514c7.10073685 7.13596587 16.42094251 10.70394937 25.77833529 10.70394937 9.32020565 0 18.60518229-3.5679835 25.70396103-10.63153209 14.23670272-14.19951559 14.27193173-37.21036345 0.07241614-51.48229632L563.26308978 513.56576313z"
-            ></path>
-          </svg>
+          <div class="v3d-error-text">
+            {{ self.hint }}
+          </div>
         </div>
-        <div class="v3d-error-text">
-          {{ self.hint }}
-        </div>
-      </div>
+      </template>
     </div>
     <div class="v3d-video" ref="refVideo"></div>
     <div class="v3d-footer" ref="refFooter">
@@ -208,7 +193,15 @@
   </div>
 </template>
 <script lang="ts" setup name="V3dPlayer">
-import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import {
+  ref,
+  reactive,
+  computed,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  useSlots
+} from 'vue'
 import Dplayer from 'dplayer-lite'
 import { DPlayerEvents, DPlayerOptions } from 'dplayer-lite'
 import flvjs from 'flv.js'
@@ -217,9 +210,12 @@ import Hls from 'hls.js'
 // import Hls from 'hls.js/dist/hls.min.js'
 // import { Events, FragLoadedData, FragBufferedData } from 'hls.js'
 import V3dLoading from './v3d-loading.vue'
+import V3dReady from './v3d-ready.vue'
 import Fetcher from '../utils/fetcher'
 import { V3dPlayerEvents, V3dPlayerOptions } from '../../d.ts'
 import { merge } from '../utils/utils'
+// 插槽
+const slots = useSlots()
 
 // 获取视频容器
 const refPlayer = ref()
@@ -313,15 +309,6 @@ const props = defineProps({
   poster: {
     type: String,
     default: ''
-  },
-  custom: {
-    type: Object,
-    default() {
-      return {
-        empty: '',
-        loading: ''
-      }
-    }
   }
 })
 
@@ -481,14 +468,6 @@ const isLoading = computed(() => {
   return self.status > 0 && self.status < 3
 })
 
-const isCustomEmpty = computed(() => {
-  return props.custom.empty && props.custom.empty !== ''
-})
-
-const isCustomLoading = computed(() => {
-  return props.custom.loading && props.custom.loading !== ''
-})
-
 const isError = computed(() => {
   return self.status === 4
 })
@@ -514,9 +493,9 @@ const statusCls = computed(() => {
       return ''
     case 1:
     case 2:
-      return 'v3d-loading'
+      return ''
     case 4:
-      return 'vvp-error'
+      return ''
     default:
       return 'v3d-hidden'
   }
@@ -1246,12 +1225,6 @@ $footerColor: rgba(30, 30, 30, 72%);
     display: none;
   }
 
-  .v3d-loading {
-    .v3d-shade {
-      display: block;
-    }
-  }
-
   .v3d-shade {
     position: absolute;
     left: 0;
@@ -1265,23 +1238,6 @@ $footerColor: rgba(30, 30, 30, 72%);
     background-size: cover;
     box-sizing: border-box;
     pointer-events: none;
-
-    .v3d-custom {
-      width: 100%;
-      height: 100%;
-      position: relative;
-    }
-
-    .v3d-chase {
-      left: calc(50% - 15px);
-      top: calc(50% - 15px);
-    }
-
-    .v3d-center {
-      position: absolute;
-      left: calc(50% - 36px);
-      top: calc(50% - 36px);
-    }
 
     .v3d-error {
       width: 100%;
@@ -1456,13 +1412,6 @@ $footerColor: rgba(30, 30, 30, 72%);
       transition: fill 0.1s;
       fill: #aaa;
     }
-  }
-
-  .svg-center {
-    transition: fill 0.1s;
-    fill: #aaa;
-    width: 72px;
-    height: 72px;
   }
 
   &.v3d-border {
