@@ -1,3 +1,12 @@
+<p align="center">
+  <a href="https://www.npmjs.org/package/v3d-player">
+    <img src="https://img.shields.io/npm/v/v3d-player.svg">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg">
+  </a>
+</p>
+
 # v3d-player
 Html5 Video Player: vue3 + typescript + dplayer-lite
 
@@ -87,6 +96,9 @@ const options = reactive({
 ### seek(time: number)
   seek to specified time
 
+### snapshot()
+  video capture. format: .png
+
 ### speed(rate: number)
   set video speed
 
@@ -94,7 +106,7 @@ const options = reactive({
   toggle between play and pause
 
 ### volume(percentage: number, nonotice: boolean)
-  
+
   get video volume
 
   ``` js
@@ -102,7 +114,7 @@ const options = reactive({
   ```
 
   set video volume
-  
+
   ``` js
     playerRef.value?.volume(0.5, true)
   ```

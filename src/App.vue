@@ -7,12 +7,6 @@
       :lock-control="self.lockControl"
       :poster="self.poster"
     >
-      <template v-slot:ready>
-        <div>abcdefg</div>
-      </template>
-      <template v-slot:loading>
-        <div>1234567</div>
-      </template>
     </v3d-player>
 
     <div class="demo-control">
@@ -60,6 +54,13 @@
         v-model="self.hasAudio"
       />
       <label for="options-audio">hasAudio(flv)</label>
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-snapshot"
+        v-model="self.snapshot"
+      />
+      <label for="options-snapshot">snapshot</label>
     </div>
     <div class="demo-control">
       <input type="text" class="demo-url" v-model="self.src" />
@@ -82,6 +83,7 @@ interface Data {
   record: boolean
   connect: boolean
   hasAudio: boolean
+  snapshot: boolean
 }
 
 const _data: Data = {
@@ -93,7 +95,8 @@ const _data: Data = {
   live: true,
   record: true,
   connect: true,
-  hasAudio: true
+  hasAudio: true,
+  snapshot: true
 }
 
 let self = reactive(_data)
@@ -117,7 +120,7 @@ const play = () => {
     allowPause: true,
     autoplay: true,
     muted: false,
-    screenshot: true,
+    screenshot: self.snapshot,
     closeTime: 0,
     // controls: true,
     preventClickToggle: true,
