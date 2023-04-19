@@ -57,10 +57,10 @@
       <input
         type="checkbox"
         class="demo-check"
-        name="options-snapshot"
-        v-model="self.snapshot"
+        name="options-screenshot"
+        v-model="self.screenshot"
       />
-      <label for="options-snapshot">snapshot</label>
+      <label for="options-screenshot">screenshot</label>
     </div>
     <div class="demo-control">
       <input type="text" class="demo-url" v-model="self.src" />
@@ -83,7 +83,7 @@ interface Data {
   record: boolean
   connect: boolean
   hasAudio: boolean
-  snapshot: boolean
+  screenshot: boolean
 }
 
 const _data: Data = {
@@ -96,7 +96,7 @@ const _data: Data = {
   record: true,
   connect: true,
   hasAudio: true,
-  snapshot: true
+  screenshot: true
 }
 
 let self = reactive(_data)
@@ -120,7 +120,7 @@ const play = () => {
     allowPause: true,
     autoplay: true,
     muted: false,
-    screenshot: self.snapshot,
+    screenshot: self.screenshot,
     closeTime: 0,
     // controls: true,
     preventClickToggle: true,

@@ -117,6 +117,12 @@ export interface V3dPlayerOptions {
   unique?: string | undefined
 }
 
+type __VLS_WithTemplateSlots<T, S> = T & {
+  new (): {
+    $slots: S
+  }
+}
+
 declare const V3dPlayer: __VLS_WithTemplateSlots<
   import('vue').DefineComponent<
     {
