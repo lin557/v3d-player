@@ -57,7 +57,7 @@ export interface DPlayerHighLightItem {
 export interface DPlayerContextMenuItem {
   text: string
   link?: string | undefined
-  click?: (() => void) | undefined
+  click?: ((player: any) => void) | undefined
 }
 
 export interface DPlayerVideoQuality {

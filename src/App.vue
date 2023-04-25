@@ -135,7 +135,7 @@ const play = () => {
     //   min: 3.0,
     //   max: 9.0
     // },
-    title: 'ABC',
+    title: '粤-AB123 CH1',
     record: self.record,
     // src: 'http://120.84.96.62:808/hls/1/index.m3u8?blog.ntnas.top'
     src: self.src,
@@ -190,7 +190,7 @@ onMounted(() => {
 .demo-player {
   margin: 0 auto;
   margin-top: 50px;
-  width: 640px;
+  max-width: 640px;
   height: 480px;
   font-size: 14px;
 

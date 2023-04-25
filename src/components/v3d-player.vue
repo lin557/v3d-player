@@ -1,5 +1,5 @@
 <template>
-  <div class="v3d-player" :class="fillCls" ref="refPlayer">
+  <div class="v3d-player" :class="fillCls" ref="refPlayer" @resize="resize">
     <div class="v3d-shade" :class="statusCls" :style="posterImg">
       <template v-if="isReady">
         <template v-if="slots.ready">
@@ -124,7 +124,10 @@
       <div class="v3d-control v3d-control-text v3d-control-info">
         {{ titleText }}
       </div>
-      <div class="v3d-control v3d-control-text v3d-control-speed">
+      <div
+        class="v3d-control v3d-control-text v3d-control-speed"
+        :class="speedCls"
+      >
         {{ kbs }}
       </div>
       <button
@@ -162,7 +165,7 @@
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M896.000853 170.666667h0.384A127.616 127.616 0 0 1 1024.000853 298.666667v554.666666c0 70.698667-57.258667 128-127.616 128H127.574187A127.616 127.616 0 0 1 0.000853 853.333333V298.666667c0-70.698667 57.258667-128 127.616-128H128.000853v-0.298667A128.042667 128.042667 0 0 1 255.702187 42.666667h512.597333A128.042667 128.042667 0 0 1 896.000853 170.368V170.666667z m-85.333333 0v-0.298667C810.66752 123.008 772.352853 128 725.078187 128H298.92352C251.606187 128 213.334187 122.794667 213.334187 170.368V170.666667h597.333333zM85.334187 340.992v470.016C85.334187 857.898667 123.350187 896 170.240853 896h683.52c46.592 0 84.906667-38.058667 84.906667-84.992V340.992A84.992 84.992 0 0 0 853.760853 256H170.240853C123.69152 256 85.334187 294.058667 85.334187 340.992zM213.334187 170.666667v85.333333h597.333333V170.666667H213.334187z m298.666666 640a256 256 0 1 1 0-512 256 256 0 0 1 0 512z m0-85.333334a170.666667 170.666667 0 1 0 0-341.333333 170.666667 170.666667 0 0 0 0 341.333333z m256-341.333333c0-23.552 18.901333-42.666667 42.624-42.666667h42.752c23.552 0 42.624 18.944 42.624 42.666667 0 23.552-18.901333 42.666667-42.624 42.666667h-42.752A42.538667 42.538667 0 0 1 768.000853 384z"
+            d="M872.00079969 192.00000031h0.36A119.64 119.64 0 0 1 992.00079969 312.00000031v519.99999938c0 66.28000031-53.68000031 120-119.64 120H151.60080031A119.64 119.64 0 0 1 32.00079969 831.99999969V312.00000031c0-66.28000031 53.68000031-120 119.64-120H152.00079969v-0.28000031A120.04000031 120.04000031 0 0 1 271.72080031 72.00000031h480.55999969A120.04000031 120.04000031 0 0 1 872.00079969 191.72V192.00000031z m-79.99999969 0v-0.28000031C792.0008 147.32 756.08079969 152 711.76080031 152H312.2408C267.88080031 152 232.00080031 147.12000031 232.00080031 191.72V192.00000031h559.99999969zM112.00080031 351.68v440.64C112.00080031 836.28000031 147.64080031 872 191.60079969 872h640.8c43.68 0 79.60000031-35.68000031 79.60000031-79.68V351.68A79.68 79.68 0 0 0 832.40079969 272H191.60079969C147.9608 272 112.00080031 307.68000031 112.00080031 351.68zM232.00080031 192.00000031v79.99999969h559.99999969V192.00000031H232.00080031z m279.99999938 600a240 240 0 1 1 0-480 240 240 0 0 1 0 480z m0-80.00000062a160.00000031 160.00000031 0 1 0 0-319.99999969 160.00000031 160.00000031 0 0 0 0 319.99999969z m240-319.99999969c0-22.08 17.71999969-40.00000031 39.96-40.00000031h40.08c22.08 0 39.96 17.76 39.96 40.00000031 0 22.08-17.71999969 40.00000031-39.96 40.00000031h-40.08A39.88000031 39.88000031 0 0 1 752.00079969 392z"
           ></path>
         </svg>
       </button>
@@ -375,6 +378,7 @@ interface Data {
   unique: string | undefined
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userData: any | undefined
+  width: number
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
@@ -404,7 +408,8 @@ let _data: Data = {
   timerClose: 0,
   title: '',
   unique: '',
-  userData: undefined
+  userData: undefined,
+  width: 0
 }
 
 let self = reactive(_data)
@@ -495,7 +500,7 @@ const kbs = computed(() => {
   if (self.speed === '') {
     return ''
   } else {
-    return self.speed + ' kb/s'
+    return self.speed + 'kb/s'
   }
 })
 
@@ -504,6 +509,13 @@ const posterImg = computed(() => {
     return ''
   }
   return 'background-image: url(' + props.poster + ');'
+})
+
+const speedCls = computed(() => {
+  if (self.width < 320) {
+    return 'v3d-hidden'
+  }
+  return ''
 })
 
 const statusCls = computed(() => {
@@ -1178,6 +1190,24 @@ const unique = () => {
   return self.unique
 }
 
+const resize = (cr: DOMRectReadOnly) => {
+  self.width = cr.width
+}
+
+const useResize = (
+  el: HTMLElement,
+  callback: (cr: DOMRectReadOnly, resize: ResizeObserver) => void
+) => {
+  let resize: ResizeObserver
+  resize = new ResizeObserver(entries => {
+    for (let entry of entries) {
+      const cr = entry.contentRect
+      callback(cr, resize)
+    }
+  })
+  resize.observe(el)
+}
+
 watch(props, () => {
   if (self.player) {
     self.player.options.controls = !props.lockControl
@@ -1193,6 +1223,7 @@ onMounted(() => {
   if (props.options.autoplay) {
     createPlayer(props.options as V3dPlayerOptions)
   }
+  useResize(refPlayer.value, resize)
 })
 
 defineExpose({
@@ -1325,7 +1356,7 @@ $footerColor: rgba(30, 30, 30, 72%);
       text-decoration: none;
       transition: none;
       appearance: none;
-      width: 32px;
+      width: 30px;
       line-height: 0;
     }
 
@@ -1357,14 +1388,16 @@ $footerColor: rgba(30, 30, 30, 72%);
 
     .v3d-control-speed {
       width: 55px;
-      margin: 0 5px;
     }
 
     .v3d-control-info {
-      width: auto;
+      width: 20px;
       flex-grow: 1;
       text-align: left;
-      margin: 0 5px;
+      margin: 0 3px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
 
     .v3d-fetching {
