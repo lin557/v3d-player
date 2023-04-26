@@ -132,6 +132,7 @@
       </div>
       <button
         v-if="vIfRecord"
+        class="v3d-control v3d-button v3d-record"
         :class="btnRecCls"
         type="button"
         title="Record"
@@ -153,6 +154,7 @@
       <button
         v-if="vIfSnapshot"
         class="v3d-control v3d-button"
+        :class="btnSnapCls"
         type="button"
         title="Snapshot"
         aria-disabled="false"
@@ -458,10 +460,20 @@ const btnRecCls = computed(() => {
     if (self.fetcher && self.fetcher.fetching) {
       cls = 'v3d-fetching'
     }
+    if (self.width < 270) {
+      cls = (cls + ' v3d-hidden').trim()
+    }
   } else {
     cls = 'v3d-hidden'
   }
-  return 'v3d-control v3d-button v3d-record ' + cls
+  return cls
+})
+
+const btnSnapCls = computed(() => {
+  if (self.width < 245) {
+    return 'v3d-hidden'
+  }
+  return ''
 })
 
 const fillCls = computed(() => {
@@ -512,7 +524,7 @@ const posterImg = computed(() => {
 })
 
 const speedCls = computed(() => {
-  if (self.width < 320) {
+  if (self.width < 325) {
     return 'v3d-hidden'
   }
   return ''
