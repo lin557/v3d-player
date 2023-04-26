@@ -1,99 +1,54 @@
 <template>
-  <div class="v3d-loading">
-    <div class="v3d-loading-dot"></div>
-    <div class="v3d-loading-dot"></div>
-    <div class="v3d-loading-dot"></div>
-    <div class="v3d-loading-dot"></div>
-    <div class="v3d-loading-dot"></div>
-    <div class="v3d-loading-dot"></div>
-  </div>
+  <span class="v3d-loading"></span>
 </template>
 <style>
 .v3d-loading {
-  width: 30px;
-  height: 30px;
-  left: calc(50% - 15px);
-  top: calc(50% - 15px);
+  left: calc(50% - 24px);
+  top: calc(50% - 24px);
   position: absolute;
-  animation: v3d-loading 2.5s infinite linear both;
+  width: 48px;
+  height: 48px;
+  border: 3px dotted #fff;
+  background: #000;
+  border-style: solid solid dotted dotted;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+  animation: v3d-rotation 2s linear infinite;
 }
-
-.v3d-loading-dot {
-  width: 100%;
-  height: 100%;
+.v3d-loading::after {
+  content: '';
+  box-sizing: border-box;
   position: absolute;
   left: 0;
+  right: 0;
   top: 0;
-  animation: v3d-loading-dot 2s infinite ease-in-out both;
+  bottom: 0;
+  margin: auto;
+  border: 3px dotted #ff3d00;
+  border-style: solid solid dotted;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  animation: v3d-rotation-back 1s linear infinite;
+  transform-origin: center center;
 }
 
-.v3d-loading-dot:before {
-  content: '';
-  display: block;
-  width: 25%;
-  height: 25%;
-  background-color: #ccc;
-  border-radius: 100%;
-  animation: v3d-loading-dot-before 2s infinite ease-in-out both;
-}
-
-.v3d-loading-dot:nth-child(1) {
-  animation-delay: -1.1s;
-}
-.v3d-loading-dot:nth-child(2) {
-  animation-delay: -1s;
-}
-.v3d-loading-dot:nth-child(3) {
-  animation-delay: -0.9s;
-}
-.v3d-loading-dot:nth-child(4) {
-  animation-delay: -0.8s;
-}
-.v3d-loading-dot:nth-child(5) {
-  animation-delay: -0.7s;
-}
-.v3d-loading-dot:nth-child(6) {
-  animation-delay: -0.6s;
-}
-.v3d-loading-dot:nth-child(1):before {
-  animation-delay: -1.1s;
-}
-.v3d-loading-dot:nth-child(2):before {
-  animation-delay: -1s;
-}
-.v3d-loading-dot:nth-child(3):before {
-  animation-delay: -0.9s;
-}
-.v3d-loading-dot:nth-child(4):before {
-  animation-delay: -0.8s;
-}
-.v3d-loading-dot:nth-child(5):before {
-  animation-delay: -0.7s;
-}
-.v3d-loading-dot:nth-child(6):before {
-  animation-delay: -0.6s;
-}
-
-@keyframes v3d-loading {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes v3d-loading-dot {
-  80%,
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes v3d-loading-dot-before {
-  50% {
-    transform: scale(0.4);
-  }
-  100%,
+@keyframes v3d-rotation {
   0% {
-    transform: scale(1);
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes v3d-rotation-back {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
   }
 }
 </style>
