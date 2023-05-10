@@ -18,26 +18,7 @@
         </template>
       </template>
       <template v-if="isError">
-        <div class="v3d-error">
-          <div class="v3d-error-svg">
-            <svg
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink"
-            >
-              <path
-                d="M512 1021.72444445c-281.07603513 0-509.72444445-228.64840931-509.72444445-509.72444445S230.92396487 2.27555555 512 2.27555555 1021.72444445 230.92396487 1021.72444445 512 793.07603513 1021.72444445 512 1021.72444445zM512 75.42018617c-240.73610126 0-436.57981383 195.84371143-436.57981383 436.57981383 0 240.69891527 195.84371143 436.57981383 436.57981383 436.57981383 240.69891527 0 436.57981383-195.87894158 436.57981383-436.57981383C948.57981383 271.26389874 752.69891527 75.42018617 512 75.42018617z"
-              ></path>
-              <path
-                d="M563.26308978 513.56576313l157.43162481-155.72102827c14.30911886-14.12709945 14.41872213-37.17317746 0.29162383-51.48229632s-37.21036345-14.41872213-51.48229632-0.29162382l-157.65083136 155.90304768-155.24738503-155.72102827c-14.23670272-14.23670272-37.2455936-14.30911886-51.48229632-0.07241614-14.23670272 14.19951559-14.27193173 37.2455936-0.07241614 51.48229632l155.02817848 155.50182172-156.30427477 154.62890838c-14.30911886 14.16232846-14.41872213 37.17317746-0.29162382 51.48229632 7.13596587 7.20838315 16.49335865 10.81355264 25.88598158 10.81355264 9.24778951 0 18.49557902-3.53079637 25.59631474-10.52192882l156.52152433-154.81092778 157.79566479 158.30649514c7.10073685 7.13596587 16.42094251 10.70394937 25.77833529 10.70394937 9.32020565 0 18.60518229-3.5679835 25.70396103-10.63153209 14.23670272-14.19951559 14.27193173-37.21036345 0.07241614-51.48229632L563.26308978 513.56576313z"
-              ></path>
-            </svg>
-          </div>
-          <div class="v3d-error-text">
-            {{ self.hint }}
-          </div>
-        </div>
+        <v3d-error>{{ self.hint }}</v3d-error>
       </template>
     </div>
     <div class="v3d-video" ref="refVideo"></div>
@@ -235,6 +216,7 @@ import Hls from 'hls.js'
 // import { Events, FragLoadedData, FragBufferedData } from 'hls.js'
 import V3dLoading from './v3d-loading.vue'
 import V3dReady from './v3d-ready.vue'
+import V3dError from './v3d-error.vue'
 import Fetcher from '../utils/fetcher'
 import { V3dPlayerEvents, V3dPlayerOptions } from '../../d.ts'
 import { merge } from '../utils/utils'
@@ -272,6 +254,7 @@ const emits = defineEmits([
   'volumechange',
   'waiting',
   // 播放器事件
+  'timeout',
   'ready',
   'screenshot',
   'contextmenu_show',
@@ -333,6 +316,10 @@ const props = defineProps({
   poster: {
     type: String,
     default: ''
+  },
+  timeout: {
+    type: Number,
+    default: 30000
   }
 })
 
@@ -374,6 +361,8 @@ interface Data {
   timerConnect: number
   // 定时关闭的定时器句柄
   timerClose: number
+  // 超时定时器
+  timerOut: number
   // 标题
   title: string | undefined
   // 唯一标识
@@ -408,6 +397,7 @@ let _data: Data = {
   status: 0,
   timerConnect: 0,
   timerClose: 0,
+  timerOut: 0,
   title: '',
   unique: '',
   userData: undefined,
@@ -555,7 +545,8 @@ const vIfSnapshot = computed(() => {
   if (self.lastOptions && self.lastOptions.screenshot) {
     return self.lastOptions.screenshot && self.status === 3
   }
-  return false
+  // 默认可见
+  return true
 })
 
 const vIfScreen = computed(() => {
@@ -706,6 +697,10 @@ const createPlayer = (option: V3dPlayerOptions) => {
         flvPlayer.load()
 
         self.flv = flvPlayer
+        // 创建一个超时定时器 30秒
+        self.timerOut = setTimeout(() => {
+          doTimeout()
+        }, props.timeout)
       },
       customHls: (video: HTMLMediaElement) => {
         const hls = new Hls({
@@ -800,6 +795,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
       self.error = self.player.video.error
     }
     if (self.error) {
+      clearTimerOut()
       self.status = 4
       switch (self.error.code) {
         case 1:
@@ -819,6 +815,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
     }
   })
   self.player.on('loadeddata', () => {
+    clearTimerOut()
     self.status = 3
     if (self.lastOptions) {
       self.lastOptions.replay = 0
@@ -888,6 +885,23 @@ const doDestroy = () => {
   }
 }
 
+const clearTimerOut = () => {
+  if (self.timerOut > 0) {
+    clearTimeout(self.timerOut)
+    self.timerOut = 0
+  }
+}
+
+/**
+ * 连接超时 当有些连接一直没有响应时执行
+ */
+const doTimeout = () => {
+  self.status = 4
+  self.hint = 'MEDIA_ERR_NETWORK: (flv) Connect timeout'
+  closePlayer()
+  emits('timeout', props.index)
+}
+
 const doTimeUpdate = () => {
   if (self.player) {
     self.player.on('timeupdate', () => {
@@ -912,7 +926,7 @@ const doTimeUpdate = () => {
   }
 }
 
-const destoryPlayer = () => {
+const closePlayer = () => {
   if (self.player) {
     // 如果在录像中 需要停止录像功能
     if (self.fetcher && self.fetcher.fetching) {
@@ -929,6 +943,11 @@ const destoryPlayer = () => {
     clearTimeout(self.timerClose)
     self.timerClose = 0
   }
+  clearTimerOut()
+}
+
+const destoryPlayer = () => {
+  closePlayer()
   self.status = 0
   self.autoAudio = true
   self.error = undefined
@@ -965,7 +984,7 @@ const eventToVue = () => {
         events[item].forEach((event: string) => {
           if (self.player) {
             self.player.on(event, () => {
-              emits(event as V3dPlayerEvents, this)
+              emits(event as V3dPlayerEvents, self)
             })
           }
         })
@@ -997,6 +1016,10 @@ const getMediaType = (src: string) => {
     type = 'normal'
   }
   return type
+}
+
+const getOptions = () => {
+  return self.lastOptions
 }
 
 const index = () => {
@@ -1101,6 +1124,8 @@ const replay = (time: number, msg: string) => {
               '. reconnect. '
           )
           play(self.lastOptions)
+        } else {
+          doTimeout()
         }
       }
     }, time)
@@ -1115,6 +1140,12 @@ const seek = (time: number) => {
   if (self.player) {
     self.player.seek(time)
   }
+}
+
+const error = (text: string) => {
+  clearTimerOut()
+  self.status = 4
+  self.hint = text
 }
 
 /**
@@ -1244,7 +1275,9 @@ defineExpose({
   currentTime,
   currentUrl,
   el,
+  error,
   focused,
+  getOptions,
   index,
   muted,
   occupy,
@@ -1307,32 +1340,6 @@ $footerColor: rgba(30, 30, 30, 72%);
     background-size: cover;
     box-sizing: border-box;
     pointer-events: none;
-
-    .v3d-error {
-      width: 100%;
-      height: 100%;
-
-      .v3d-error-svg {
-        position: absolute;
-        left: calc(50% - 24px);
-        top: calc(50% - 24px);
-
-        svg {
-          fill: #999;
-          width: 48px;
-          height: 48px;
-        }
-      }
-    }
-
-    .v3d-error-text {
-      color: #ccc;
-      font-size: 12px;
-      text-align: center;
-      position: absolute;
-      top: calc(50% + 28px);
-      width: 100%;
-    }
   }
 
   .v3d-video {

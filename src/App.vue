@@ -6,6 +6,7 @@
       :fill="self.filled"
       :lock-control="self.lockControl"
       :poster="self.poster"
+      @timeout="handleError"
     >
     </v3d-player>
 
@@ -17,6 +18,7 @@
       <button @click="snapshot">snapshot</button>
       <button @click="occupy">occupy</button>
       <button @click="muted">muted</button>
+      <button @click="errorMsg">error</button>
     </div>
     <div class="demo-control">
       <input
@@ -72,6 +74,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import V3dPlayer from './components/v3d-player.vue'
+import { V3dPlayerEvents } from '../d.ts'
 
 interface Data {
   lockControl: boolean
@@ -105,6 +108,14 @@ const player = ref()
 
 const close = () => {
   player.value.close()
+}
+
+const errorMsg = () => {
+  player.value.error('这是一个错误提示测试')
+}
+
+const handleError = (e: V3dPlayerEvents) => {
+  console.log(e)
 }
 
 const muted = () => {
@@ -160,6 +171,8 @@ const play = () => {
     }
   }
   player.value.play(options)
+
+  console.log(player.value.getOptions())
 }
 
 const snapshot = () => {

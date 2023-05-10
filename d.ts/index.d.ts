@@ -25,6 +25,7 @@ export type V3dPlayerEvents =
   | 'volumechange'
   | 'waiting'
   // 播放器事件
+  | 'timeout'
   | 'ready'
   | 'screenshot'
   | 'contextmenu_show'
@@ -169,6 +170,10 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
         type: StringConstructor
         default: string
       }
+      timeout: {
+        type: NumberConstructor
+        default: number
+      }
     },
     {
       bufferedEnd: () => number
@@ -176,7 +181,67 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       currentTime: () => number
       currentUrl: () => string
       el: () => any
+      error: (text: string) => void
       focused: (focus?: boolean) => boolean | undefined
+      getOptions: () =>
+        | {
+            autoplay?: boolean | undefined
+            autoRate?:
+              | {
+                  enabled: boolean
+                  min: number
+                  max: number
+                }
+              | undefined
+            closeTime?: number | undefined
+            connect?: boolean | undefined
+            container?: HTMLElement | null | undefined
+            controls?: boolean | undefined
+            contextmenu?:
+              | {
+                  text: string
+                  link?: string | undefined
+                  click?: ((player: any) => void) | undefined
+                }[]
+              | undefined
+            debug?: boolean | undefined
+            hasAudio?: boolean | undefined
+            hotkey?: boolean | undefined
+            lang?: string | undefined
+            live?: boolean | undefined
+            logo?: string | undefined
+            loop?: boolean | undefined
+            muted?: boolean | undefined
+            mutex?: boolean | undefined
+            order?: number | undefined
+            preload?: import('../../d.ts').Preload | undefined
+            preventClickToggle?: boolean | undefined
+            screenshot?: boolean | undefined
+            src: string
+            record?: boolean | undefined
+            replay?: number | undefined
+            theme?: string | undefined
+            title?: string | undefined
+            video?:
+              | {
+                  url: string
+                  pic?: string | undefined
+                  type?: string | undefined
+                  customType?: any
+                  quality?:
+                    | {
+                        name: string
+                        url: string
+                        type?: string | undefined
+                      }[]
+                    | undefined
+                  defaultQuality?: number | undefined
+                }
+              | undefined
+            volume?: number | undefined
+            unique?: string | undefined
+          }
+        | undefined
       index: () => number
       muted: () => void
       occupy: (order: number, unique: string, text: string) => void
@@ -225,6 +290,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       | 'suspend'
       | 'volumechange'
       | 'waiting'
+      | 'timeout'
       | 'screenshot'
       | 'contextmenu_show'
       | 'contextmenu_hide'
@@ -263,6 +329,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
     | 'suspend'
     | 'volumechange'
     | 'waiting'
+    | 'timeout'
     | 'screenshot'
     | 'contextmenu_show'
     | 'contextmenu_hide'
@@ -322,6 +389,10 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
           type: StringConstructor
           default: string
         }
+        timeout: {
+          type: NumberConstructor
+          default: number
+        }
       }>
     > & {
       onError?: ((...args: any[]) => any) | undefined
@@ -350,6 +421,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       onFetch_start?: ((...args: any[]) => any) | undefined
       onFetch_stop?: ((...args: any[]) => any) | undefined
       onMozaudioavailable?: ((...args: any[]) => any) | undefined
+      onTimeout?: ((...args: any[]) => any) | undefined
       onScreenshot?: ((...args: any[]) => any) | undefined
       onContextmenu_show?: ((...args: any[]) => any) | undefined
       onContextmenu_hide?: ((...args: any[]) => any) | undefined
@@ -364,6 +436,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
     },
     {
       fill: boolean
+      timeout: number
       border: boolean
       index: number
       lockControl: boolean

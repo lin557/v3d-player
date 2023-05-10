@@ -1,7 +1,7 @@
 <template>
   <div class="v3d-ready">
     <svg
-      class="svg-ready"
+      class="v3d-ready-svg"
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -23,7 +23,7 @@
   left: calc(50% - 36px);
   top: calc(50% - 36px);
 
-  .svg-ready {
+  .v3d-ready-svg {
     transition: fill 0.1s;
     fill: #aaa;
     width: 72px;

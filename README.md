@@ -182,6 +182,17 @@ const handleLoadStart = () => {
   - webfullscreen
   - webfullscreen_cancel
 
+- 事件流触发的顺序：
+
+1. onloadstart
+2. ondurationchange
+3. onloadedmetadata
+4. onloadeddata
+5. onprogress
+6. oncanplay
+7. oncanplaythrough
+
+
 ## Project
 
 setup

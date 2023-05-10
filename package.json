@@ -1,6 +1,6 @@
 {
   "name": "v3d-player",
-  "version": "1.1.6",
+  "version": "1.1.14",
   "description": "Vue3 Dplayer-Lite",
   "main": "dist/v3d-player.umd.js",
   "module": "dist/v3d-player.es.js",
