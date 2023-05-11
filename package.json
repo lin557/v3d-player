@@ -1,6 +1,6 @@
 {
   "name": "v3d-player",
-  "version": "1.1.14",
+  "version": "1.2.0",
   "description": "Vue3 Dplayer-Lite",
   "main": "dist/v3d-player.umd.js",
   "module": "dist/v3d-player.es.js",
@@ -56,7 +56,7 @@
     "prettier": "^2.8.4",
     "sass": "^1.58.3",
     "typescript": "^4.9.5",
-    "vite": "^4.1.4",
+    "vite": "^4.3.5",
     "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-vue-setup-extend": "^0.4.0",
     "vue-tsc": "^1.2.0"

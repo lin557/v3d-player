@@ -50,6 +50,22 @@ export type VideoType =
   | 'webtorrent'
   | 'normal'
 
+export type V3dDisplay = 'none' | 'alway' | 'auto'
+
+export interface V3dControls {
+  display: V3dDisplay
+  // 抓图按钮
+  screenshot?: boolean | undefined
+  // 全屏按钮
+  fullscreen?: boolean | undefined
+  // 关闭按钮
+  close?: boolean | undefined
+  // 暂停按钮
+  plause?: boolean | undefined
+  // 静音按钮
+  mute?: boolean | undefined
+}
+
 export interface DPlayerHighLightItem {
   text: string
   time: number
@@ -107,7 +123,6 @@ export interface V3dPlayerOptions {
   order?: number | undefined
   preload?: Preload | undefined
   preventClickToggle?: boolean | undefined
-  screenshot?: boolean | undefined
   src: string
   record?: boolean | undefined
   replay?: number
@@ -142,9 +157,16 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       /**
        * 锁定控制栏
        */
-      lockControl: {
-        type: BooleanConstructor
-        default: boolean
+      controls: {
+        type: ObjectConstructor
+        default(): {
+          display: string
+          screenshot: boolean
+          fullscreen: boolean
+          close: boolean
+          plause: boolean
+          mute: boolean
+        }
       }
       options: {
         type: ObjectConstructor
@@ -160,7 +182,6 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
           muted: boolean
           mutex: boolean
           preload: string
-          screenshot: boolean
           src: undefined
           theme: string
           volume: number
@@ -216,7 +237,6 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
             order?: number | undefined
             preload?: import('../../d.ts').Preload | undefined
             preventClickToggle?: boolean | undefined
-            screenshot?: boolean | undefined
             src: string
             record?: boolean | undefined
             replay?: number | undefined
@@ -361,9 +381,16 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
         /**
          * 锁定控制栏
          */
-        lockControl: {
-          type: BooleanConstructor
-          default: boolean
+        controls: {
+          type: ObjectConstructor
+          default(): {
+            display: string
+            screenshot: boolean
+            fullscreen: boolean
+            close: boolean
+            plause: boolean
+            mute: boolean
+          }
         }
         options: {
           type: ObjectConstructor
@@ -379,7 +406,6 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
             muted: boolean
             mutex: boolean
             preload: string
-            screenshot: boolean
             src: undefined
             theme: string
             volume: number
@@ -439,7 +465,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       timeout: number
       border: boolean
       index: number
-      lockControl: boolean
+      controls: Record<string, any>
       options: Record<string, any>
       poster: string
     }

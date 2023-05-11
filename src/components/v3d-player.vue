@@ -22,6 +22,9 @@
       </template>
     </div>
     <div class="v3d-video" ref="refVideo"></div>
+    <div class="v3d-time" v-if="vIfTime">
+      {{ self.close.time / 1000 }}
+    </div>
     <div class="v3d-footer" ref="refFooter">
       <button
         class="v3d-control v3d-button"
@@ -133,7 +136,7 @@
         </svg>
       </button>
       <button
-        v-if="vIfSnapshot"
+        v-if="vIfSnap"
         class="v3d-control v3d-button"
         :class="btnSnapCls"
         type="button"
@@ -214,11 +217,11 @@ import flvjs from 'flv.js'
 import Hls from 'hls.js'
 // import Hls from 'hls.js/dist/hls.min.js'
 // import { Events, FragLoadedData, FragBufferedData } from 'hls.js'
-import V3dLoading from './v3d-loading.vue'
-import V3dReady from './v3d-ready.vue'
-import V3dError from './v3d-error.vue'
+import V3dLoading from './slots/v3d-loading.vue'
+import V3dReady from './slots/v3d-ready.vue'
+import V3dError from './slots/v3d-error.vue'
 import Fetcher from '../utils/fetcher'
-import { V3dPlayerEvents, V3dPlayerOptions } from '../../d.ts'
+import { V3dPlayerEvents, V3dPlayerOptions, V3dControls } from '../../d.ts'
 import { merge } from '../utils/utils'
 // 插槽
 const slots = useSlots()
@@ -287,9 +290,18 @@ const props = defineProps({
   /**
    * 锁定控制栏
    */
-  lockControl: {
-    type: Boolean,
-    default: false
+  controls: {
+    type: Object,
+    default() {
+      return {
+        display: 'auto',
+        screenshot: false,
+        fullscreen: true,
+        close: true,
+        plause: true,
+        mute: true
+      }
+    }
   },
   options: {
     type: Object,
@@ -306,7 +318,6 @@ const props = defineProps({
         muted: false,
         mutex: false,
         preload: 'auto',
-        screenshot: false,
         src: undefined,
         theme: '#b7daff',
         volume: 0.7
@@ -328,10 +339,18 @@ interface MediaErrorX {
   message: string
 }
 
+interface CloseParam {
+  // 定时关闭的定时器句柄
+  id: number
+  time: number
+}
+
 interface Data {
   allowPause: boolean
   // 当http-flv头有音视频 但http-flv没有音频流时 自动重置播放器
   autoAudio: boolean
+  // 定时关闭
+  close: CloseParam
   error: MediaErrorX | undefined
   fetcher: Fetcher | undefined
   flv: flvjs.Player | undefined
@@ -358,9 +377,7 @@ interface Data {
   // 0=空闲 1=占用中 2=请求中 3=播放中/缓冲中 4=错误
   status: number
   // 定时器句柄
-  timerConnect: number
-  // 定时关闭的定时器句柄
-  timerClose: number
+  replayId: number
   // 超时定时器
   timerOut: number
   // 标题
@@ -370,14 +387,29 @@ interface Data {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userData: any | undefined
   width: number
+  // 控制栏
+  controls: V3dControls
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
 const ERR_MAX_AUDIO_COUNT = 10
 
+const defaultControls: V3dControls = {
+  display: 'auto',
+  screenshot: false,
+  fullscreen: true,
+  close: true,
+  plause: true,
+  mute: true
+}
+
 let _data: Data = {
   allowPause: false,
   autoAudio: true,
+  close: {
+    id: 0,
+    time: 0
+  },
   error: undefined,
   fetcher: undefined,
   flv: undefined,
@@ -395,13 +427,13 @@ let _data: Data = {
   rate: 1.0,
   speed: '',
   status: 0,
-  timerConnect: 0,
-  timerClose: 0,
+  replayId: 0,
   timerOut: 0,
   title: '',
   unique: '',
   userData: undefined,
-  width: 0
+  width: 0,
+  controls: defaultControls
 }
 
 let self = reactive(_data)
@@ -468,7 +500,7 @@ const btnSnapCls = computed(() => {
 
 const fillCls = computed(() => {
   let cls = ''
-  if (props.lockControl) {
+  if (self.controls.display !== 'none') {
     if (self.status > 0) {
       // 开始播放或占用时才显示控制栏
       cls = 'v3d-footer-show'
@@ -534,23 +566,23 @@ const statusCls = computed(() => {
   }
 })
 
+const vIfTime = computed(() => {
+  return self.close.id > 0 && self.close.time < 10000
+})
+
+const vIfScreen = computed(() => {
+  return self.controls.fullscreen
+})
+
+const vIfSnap = computed(() => {
+  return self.controls.screenshot
+})
+
 const vIfRecord = computed(() => {
   if (self.lastOptions && self.lastOptions.record) {
     return self.lastOptions.record
   }
   return false
-})
-
-const vIfSnapshot = computed(() => {
-  if (self.lastOptions && self.lastOptions.screenshot) {
-    return self.lastOptions.screenshot && self.status === 3
-  }
-  // 默认可见
-  return true
-})
-
-const vIfScreen = computed(() => {
-  return self.status > 2
 })
 
 const titleText = computed(() => {
@@ -575,8 +607,15 @@ const close = () => {
 }
 
 const createPlayer = (option: V3dPlayerOptions) => {
+  syncControlBar()
   let opts = merge(option, defaultOption)
-  if (props.lockControl) {
+  if (self.controls.screenshot === undefined) {
+    self.controls.screenshot = false
+  }
+  opts.screenshot = self.controls.screenshot
+  if (self.controls.display === 'none') {
+    opts.controls = true
+  } else {
     opts.controls = false
   }
   if (opts.unique === '' && self.unique) {
@@ -820,21 +859,25 @@ const createPlayer = (option: V3dPlayerOptions) => {
     if (self.lastOptions) {
       self.lastOptions.replay = 0
 
-      if (self.lastOptions.closeTime && self.timerClose === 0) {
+      if (self.lastOptions.closeTime && self.close.id === 0) {
         // 启用了定时关闭 但还没有创建定时器
-        self.timerClose = setTimeout(() => {
-          close()
-        }, self.lastOptions.closeTime * 1000)
+        // self.timerClose = setTimeout(() => {
+        //   close()
+        // }, self.lastOptions.closeTime * 1000)
+        self.close.time = self.lastOptions.closeTime
+        self.close.id = setInterval(() => {
+          checkClose()
+        }, 1000)
       }
     }
   })
   self.player.on('fullscreen', () => {
-    if (props.lockControl) {
+    if (self.controls.display !== 'none') {
       refVideo.value.append(refFooter.value)
     }
   })
   self.player.on('fullscreen_cancel', () => {
-    if (props.lockControl) {
+    if (self.controls.display !== 'none') {
       refPlayer.value.append(refFooter.value)
     }
   })
@@ -885,6 +928,13 @@ const doDestroy = () => {
   }
 }
 
+const clearAutoClose = () => {
+  if (self.close.id > 0) {
+    clearInterval(self.close.id)
+    self.close.id = 0
+  }
+}
+
 const clearTimerOut = () => {
   if (self.timerOut > 0) {
     clearTimeout(self.timerOut)
@@ -896,9 +946,9 @@ const clearTimerOut = () => {
  * 连接超时 当有些连接一直没有响应时执行
  */
 const doTimeout = () => {
-  self.status = 4
-  self.hint = 'MEDIA_ERR_NETWORK: (flv) Connect timeout'
   closePlayer()
+  self.status = 4
+  self.hint = 'Connect timeout'
   emits('timeout', props.index)
 }
 
@@ -935,14 +985,11 @@ const closePlayer = () => {
     self.player.destroy()
     self.player = undefined
   }
-  if (self.timerConnect > 0) {
-    clearTimeout(self.timerConnect)
-    self.timerConnect = 0
+  if (self.replayId > 0) {
+    clearTimeout(self.replayId)
+    self.replayId = 0
   }
-  if (self.timerClose > 0) {
-    clearTimeout(self.timerClose)
-    self.timerClose = 0
-  }
+  clearAutoClose()
   clearTimerOut()
 }
 
@@ -1111,7 +1158,7 @@ const replay = (time: number, msg: string) => {
     if (self.lastOptions.replay !== undefined) {
       time = time + self.lastOptions.replay * 1000
     }
-    self.timerConnect = setTimeout(() => {
+    self.replayId = setTimeout(() => {
       if (self.lastOptions && self.lastOptions.replay !== undefined) {
         self.lastOptions.replay++
         if (self.lastOptions.replay < 6) {
@@ -1143,7 +1190,7 @@ const seek = (time: number) => {
 }
 
 const error = (text: string) => {
-  clearTimerOut()
+  closePlayer()
   self.status = 4
   self.hint = text
 }
@@ -1162,6 +1209,18 @@ const snapshot = () => {
  */
 const status = () => {
   return self.status
+}
+
+const checkClose = () => {
+  self.close.time = self.close.time - 1000
+  if (self.close.time <= 10000) {
+    // < 10 秒 显示倒计时
+
+    if (self.close.time <= 0) {
+      // 时间到
+      close()
+    }
+  }
 }
 
 /**
@@ -1251,12 +1310,22 @@ const useResize = (
   resize.observe(el)
 }
 
-watch(props, () => {
+const syncControlBar = () => {
+  const value = props.controls as V3dControls
+  self.controls = merge(value, defaultControls)
   if (self.player) {
-    self.player.options.controls = !props.lockControl
+    // 显示永久工具栏 就不要显示dplayer的工具栏
+    self.player.options.controls = self.controls.display !== 'none'
     self.player.controller.hide()
   }
-})
+}
+
+watch(
+  () => Object.values(props.controls),
+  () => {
+    syncControlBar()
+  }
+)
 
 onBeforeUnmount(() => {
   destoryPlayer()
@@ -1344,6 +1413,28 @@ $footerColor: rgba(30, 30, 30, 72%);
 
   .v3d-video {
     z-index: 3;
+  }
+
+  .v3d-time {
+    z-index: 4;
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 2px;
+    margin: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 11px;
+    text-align: center;
+    background-color: #666;
+    opacity: 0.9;
+    color: #0f0;
+    line-height: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    text-shadow: #000 1px 0 0, #000 0 1px 0, #000 -1px 0 0, #000 0 -1px 0;
+    user-select: none;
   }
 
   .v3d-footer {

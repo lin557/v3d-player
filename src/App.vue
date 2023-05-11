@@ -4,7 +4,7 @@
       ref="player"
       :border="self.border"
       :fill="self.filled"
-      :lock-control="self.lockControl"
+      :controls="self.controls"
       :poster="self.poster"
       @timeout="handleError"
     >
@@ -60,9 +60,16 @@
         type="checkbox"
         class="demo-check"
         name="options-screenshot"
-        v-model="self.screenshot"
+        v-model="self.controls.screenshot"
       />
       <label for="options-screenshot">screenshot</label>
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-fullscreen"
+        v-model="self.controls.fullscreen"
+      />
+      <label for="options-fullscreen">fullscreen</label>
     </div>
     <div class="demo-control">
       <input type="text" class="demo-url" v-model="self.src" />
@@ -74,10 +81,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import V3dPlayer from './components/v3d-player.vue'
-import { V3dPlayerEvents } from '../d.ts'
+import { V3dPlayerEvents, V3dControls } from '../d.ts'
 
 interface Data {
-  lockControl: boolean
+  controls: V3dControls
   poster: string
   filled: boolean
   src: string
@@ -86,11 +93,14 @@ interface Data {
   record: boolean
   connect: boolean
   hasAudio: boolean
-  screenshot: boolean
 }
 
 const _data: Data = {
-  lockControl: true,
+  controls: {
+    display: 'auto',
+    screenshot: true,
+    fullscreen: true
+  },
   filled: false,
   poster: '',
   border: false,
@@ -98,8 +108,7 @@ const _data: Data = {
   live: true,
   record: true,
   connect: true,
-  hasAudio: true,
-  screenshot: true
+  hasAudio: true
 }
 
 let self = reactive(_data)
@@ -131,8 +140,7 @@ const play = () => {
     allowPause: true,
     autoplay: true,
     muted: false,
-    screenshot: self.screenshot,
-    closeTime: 0,
+    closeTime: 10000,
     // controls: true,
     preventClickToggle: true,
     theme: '#FF3366',
@@ -171,8 +179,6 @@ const play = () => {
     }
   }
   player.value.play(options)
-
-  console.log(player.value.getOptions())
 }
 
 const snapshot = () => {
@@ -180,7 +186,7 @@ const snapshot = () => {
 }
 
 const toggleControl = () => {
-  self.lockControl = !self.lockControl
+  self.controls.display = 'none'
 }
 
 const toggleFill = () => {
