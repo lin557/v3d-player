@@ -52,20 +52,6 @@ export type VideoType =
 
 export type V3dDisplay = 'none' | 'alway' | 'auto'
 
-export interface V3dControls {
-  display: V3dDisplay
-  // 抓图按钮
-  screenshot?: boolean | undefined
-  // 全屏按钮
-  fullscreen?: boolean | undefined
-  // 关闭按钮
-  close?: boolean | undefined
-  // 暂停按钮
-  plause?: boolean | undefined
-  // 静音按钮
-  mute?: boolean | undefined
-}
-
 export interface DPlayerHighLightItem {
   text: string
   time: number
@@ -158,15 +144,16 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
        * 锁定控制栏
        */
       controls: {
-        type: ObjectConstructor
-        default(): {
-          display: string
-          screenshot: boolean
-          fullscreen: boolean
-          close: boolean
-          plause: boolean
-          mute: boolean
-        }
+        type: StringConstructor
+        default: string
+      }
+      screenshot: {
+        type: BooleanConstructor
+        default: boolean
+      }
+      fullscreen: {
+        type: BooleanConstructor
+        default: boolean
       }
       options: {
         type: ObjectConstructor
@@ -382,15 +369,16 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
          * 锁定控制栏
          */
         controls: {
-          type: ObjectConstructor
-          default(): {
-            display: string
-            screenshot: boolean
-            fullscreen: boolean
-            close: boolean
-            plause: boolean
-            mute: boolean
-          }
+          type: StringConstructor
+          default: string
+        }
+        screenshot: {
+          type: BooleanConstructor
+          default: boolean
+        }
+        fullscreen: {
+          type: BooleanConstructor
+          default: boolean
         }
         options: {
           type: ObjectConstructor
@@ -463,9 +451,11 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
     {
       fill: boolean
       timeout: number
+      screenshot: boolean
+      fullscreen: boolean
       border: boolean
       index: number
-      controls: Record<string, any>
+      controls: string
       options: Record<string, any>
       poster: string
     }

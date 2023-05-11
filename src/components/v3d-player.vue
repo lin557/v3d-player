@@ -221,7 +221,7 @@ import V3dLoading from './slots/v3d-loading.vue'
 import V3dReady from './slots/v3d-ready.vue'
 import V3dError from './slots/v3d-error.vue'
 import Fetcher from '../utils/fetcher'
-import { V3dPlayerEvents, V3dPlayerOptions, V3dControls } from '../../d.ts'
+import { V3dPlayerEvents, V3dPlayerOptions } from '../../d.ts'
 import { merge } from '../utils/utils'
 // 插槽
 const slots = useSlots()
@@ -291,17 +291,16 @@ const props = defineProps({
    * 锁定控制栏
    */
   controls: {
-    type: Object,
-    default() {
-      return {
-        display: 'auto',
-        screenshot: false,
-        fullscreen: true,
-        close: true,
-        plause: true,
-        mute: true
-      }
-    }
+    type: String,
+    default: 'auto'
+  },
+  screenshot: {
+    type: Boolean,
+    default: false
+  },
+  fullscreen: {
+    type: Boolean,
+    default: true
   },
   options: {
     type: Object,
@@ -387,21 +386,10 @@ interface Data {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userData: any | undefined
   width: number
-  // 控制栏
-  controls: V3dControls
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
 const ERR_MAX_AUDIO_COUNT = 10
-
-const defaultControls: V3dControls = {
-  display: 'auto',
-  screenshot: false,
-  fullscreen: true,
-  close: true,
-  plause: true,
-  mute: true
-}
 
 let _data: Data = {
   allowPause: false,
@@ -432,8 +420,7 @@ let _data: Data = {
   title: '',
   unique: '',
   userData: undefined,
-  width: 0,
-  controls: defaultControls
+  width: 0
 }
 
 let self = reactive(_data)
@@ -500,7 +487,7 @@ const btnSnapCls = computed(() => {
 
 const fillCls = computed(() => {
   let cls = ''
-  if (self.controls.display !== 'none') {
+  if (props.controls !== 'none') {
     if (self.status > 0) {
       // 开始播放或占用时才显示控制栏
       cls = 'v3d-footer-show'
@@ -571,11 +558,11 @@ const vIfTime = computed(() => {
 })
 
 const vIfScreen = computed(() => {
-  return self.controls.fullscreen
+  return props.fullscreen
 })
 
 const vIfSnap = computed(() => {
-  return self.controls.screenshot
+  return props.screenshot
 })
 
 const vIfRecord = computed(() => {
@@ -609,11 +596,8 @@ const close = () => {
 const createPlayer = (option: V3dPlayerOptions) => {
   syncControlBar()
   let opts = merge(option, defaultOption)
-  if (self.controls.screenshot === undefined) {
-    self.controls.screenshot = false
-  }
-  opts.screenshot = self.controls.screenshot
-  if (self.controls.display === 'none') {
+  opts.screenshot = props.screenshot
+  if (props.controls === 'none') {
     opts.controls = true
   } else {
     opts.controls = false
@@ -872,12 +856,12 @@ const createPlayer = (option: V3dPlayerOptions) => {
     }
   })
   self.player.on('fullscreen', () => {
-    if (self.controls.display !== 'none') {
+    if (props.controls !== 'none') {
       refVideo.value.append(refFooter.value)
     }
   })
   self.player.on('fullscreen_cancel', () => {
-    if (self.controls.display !== 'none') {
+    if (props.controls !== 'none') {
       refPlayer.value.append(refFooter.value)
     }
   })
@@ -1311,17 +1295,15 @@ const useResize = (
 }
 
 const syncControlBar = () => {
-  const value = props.controls as V3dControls
-  self.controls = merge(value, defaultControls)
   if (self.player) {
     // 显示永久工具栏 就不要显示dplayer的工具栏
-    self.player.options.controls = self.controls.display !== 'none'
+    self.player.options.controls = props.controls !== 'none'
     self.player.controller.hide()
   }
 }
 
 watch(
-  () => Object.values(props.controls),
+  () => props.controls,
   () => {
     syncControlBar()
   }

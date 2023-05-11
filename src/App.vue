@@ -5,6 +5,8 @@
       :border="self.border"
       :fill="self.filled"
       :controls="self.controls"
+      :screenshot="self.screenshot"
+      :fullscreen="self.fullscreen"
       :poster="self.poster"
       @timeout="handleError"
     >
@@ -60,14 +62,14 @@
         type="checkbox"
         class="demo-check"
         name="options-screenshot"
-        v-model="self.controls.screenshot"
+        v-model="self.screenshot"
       />
       <label for="options-screenshot">screenshot</label>
       <input
         type="checkbox"
         class="demo-check"
         name="options-fullscreen"
-        v-model="self.controls.fullscreen"
+        v-model="self.fullscreen"
       />
       <label for="options-fullscreen">fullscreen</label>
     </div>
@@ -81,10 +83,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import V3dPlayer from './components/v3d-player.vue'
-import { V3dPlayerEvents, V3dControls } from '../d.ts'
+import { V3dPlayerEvents, V3dDisplay } from '../d.ts'
 
 interface Data {
-  controls: V3dControls
+  controls: V3dDisplay
   poster: string
   filled: boolean
   src: string
@@ -93,14 +95,12 @@ interface Data {
   record: boolean
   connect: boolean
   hasAudio: boolean
+  screenshot: boolean
+  fullscreen: boolean
 }
 
 const _data: Data = {
-  controls: {
-    display: 'auto',
-    screenshot: true,
-    fullscreen: true
-  },
+  controls: 'auto',
   filled: false,
   poster: '',
   border: false,
@@ -108,7 +108,9 @@ const _data: Data = {
   live: true,
   record: true,
   connect: true,
-  hasAudio: true
+  hasAudio: true,
+  screenshot: true,
+  fullscreen: true
 }
 
 let self = reactive(_data)
@@ -186,7 +188,11 @@ const snapshot = () => {
 }
 
 const toggleControl = () => {
-  self.controls.display = 'none'
+  if (self.controls === 'none') {
+    self.controls = 'auto'
+  } else {
+    self.controls = 'none'
+  }
 }
 
 const toggleFill = () => {
