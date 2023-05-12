@@ -610,7 +610,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
   }
   destoryPlayer()
   self.muted = opts.muted
-  self.order === opts.order
+  self.order = opts.order
   self.unique = opts.unique
   self.title = opts.title
   self.allowPause = opts.allowPause
