@@ -2,6 +2,7 @@
   <div class="demo-player">
     <v3d-player
       ref="player"
+      lang="zh-cn"
       :allow-pause="self.allowPause"
       :border="self.border"
       :fill="self.filled"

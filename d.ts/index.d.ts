@@ -151,6 +151,10 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
         type: StringConstructor
         default: string
       }
+      lang: {
+        type: StringConstructor
+        default: string
+      }
       screenshot: {
         type: BooleanConstructor
         default: boolean
@@ -192,7 +196,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       currentTime: () => number
       currentUrl: () => string
       el: () => any
-      error: (text: string) => void
+      error: (msg: string) => void
       focused: (focus?: boolean) => boolean | undefined
       getOptions: () =>
         | {
@@ -225,7 +229,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
             muted?: boolean | undefined
             mutex?: boolean | undefined
             order?: number | undefined
-            preload?: Preload | undefined
+            preload?: import('../../d.ts').Preload | undefined
             preventClickToggle?: boolean | undefined
             src: string
             record?: boolean | undefined
@@ -253,6 +257,8 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
           }
         | undefined
       index: () => number
+      locale: (key: string) => any
+      message: () => string
       muted: () => void
       occupy: (order: number, unique: string, text: string) => void
       order: () => number
@@ -379,6 +385,10 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
           type: StringConstructor
           default: string
         }
+        lang: {
+          type: StringConstructor
+          default: string
+        }
         screenshot: {
           type: BooleanConstructor
           default: boolean
@@ -463,6 +473,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       border: boolean
       index: number
       controls: string
+      lang: string
       options: Record<string, any>
       poster: string
     }

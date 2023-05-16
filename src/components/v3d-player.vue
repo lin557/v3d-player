@@ -22,7 +22,7 @@
           <slot name="error"></slot>
         </template>
         <template v-else>
-          <v3d-error>{{ self.hint }}</v3d-error>
+          <v3d-error>{{ self.msg }}</v3d-error>
         </template>
       </template>
     </div>
@@ -35,7 +35,7 @@
         v-if="vIfPause"
         class="v3d-control v3d-button"
         type="button"
-        title="Pause"
+        :title="playTitle"
         aria-disabled="false"
         @click="toggle()"
       >
@@ -77,7 +77,7 @@
       <button
         class="v3d-control v3d-button"
         type="button"
-        title="Muted"
+        :title="locale('mute')"
         aria-disabled="false"
         @click="toggleMuted()"
       >
@@ -124,7 +124,7 @@
         class="v3d-control v3d-button v3d-record"
         :class="btnRecCls"
         type="button"
-        title="Record"
+        :title="locale('record')"
         aria-disabled="false"
         @click="toggleRecord()"
       >
@@ -145,7 +145,7 @@
         class="v3d-control v3d-button"
         :class="btnSnapCls"
         type="button"
-        title="Snapshot"
+        :title="locale('snap')"
         aria-disabled="false"
         @click="snapshot()"
       >
@@ -164,7 +164,7 @@
         v-if="vIfScreen"
         class="v3d-control v3d-button"
         type="button"
-        title="Fullscreen"
+        :title="locale('full')"
         aria-disabled="false"
         @click="toggleScreen()"
       >
@@ -183,7 +183,7 @@
       <button
         class="v3d-control v3d-button"
         type="button"
-        title="Close"
+        :title="locale('close')"
         aria-disabled="false"
         @click="close()"
       >
@@ -228,6 +228,8 @@ import V3dError from './slots/v3d-error.vue'
 import Fetcher from '../utils/fetcher'
 import { V3dPlayerEvents, V3dPlayerOptions } from '../../d.ts'
 import { merge } from '../utils/utils'
+import i18n from './i18n'
+
 // 插槽
 const slots = useSlots()
 
@@ -303,6 +305,10 @@ const props = defineProps({
     type: String,
     default: 'auto'
   },
+  lang: {
+    type: String,
+    default: 'en'
+  },
   screenshot: {
     type: Boolean,
     default: false
@@ -362,7 +368,7 @@ interface Data {
   flv: flvjs.Player | undefined
   focused: boolean
   // 提示文本
-  hint: string
+  msg: string
   hls: Hls | undefined
   // last Decoded Count
   lastCount: number
@@ -408,7 +414,7 @@ let _data: Data = {
   fetcher: undefined,
   flv: undefined,
   focused: false,
-  hint: '',
+  msg: '',
   hls: undefined,
   lastCount: 0,
   lastFrame: 0,
@@ -558,6 +564,10 @@ const statusCls = computed(() => {
   }
 })
 
+const playTitle = computed(() => {
+  return self.paused ? locale('play') : locale('pause')
+})
+
 const vIfTime = computed(() => {
   return self.close.id > 0 && self.close.time < 10000
 })
@@ -606,6 +616,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
   syncControlBar()
   let opts = merge(option, defaultOption)
   opts.screenshot = props.screenshot
+  opts.lang = props.lang
   if (props.controls === 'none') {
     opts.controls = true
   } else {
@@ -842,7 +853,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
           break
       }
       // console.log(self.error)
-      self.hint = self.error.message
+      self.msg = self.error.message
     }
   })
   self.player.on('loadeddata', () => {
@@ -940,7 +951,7 @@ const clearTimerOut = () => {
 const doTimeout = () => {
   closePlayer()
   self.status = 4
-  self.hint = 'Connect timeout'
+  self.msg = 'Connect timeout'
   emits('timeout', props.index)
 }
 
@@ -993,7 +1004,7 @@ const destoryPlayer = () => {
   self.lastOptions = undefined
   self.rate = 1.0
   self.speed = ''
-  self.hint = ''
+  self.msg = ''
   self.title = undefined
   self.unique = undefined
   self.lastCount = 0
@@ -1007,6 +1018,12 @@ const destoryPlayer = () => {
  */
 const el = () => {
   return refPlayer.value
+}
+
+const error = (msg: string) => {
+  closePlayer()
+  self.status = 4
+  self.msg = msg
 }
 
 /**
@@ -1062,6 +1079,23 @@ const getOptions = () => {
 
 const index = () => {
   return props.index
+}
+
+/**
+ * 语言文本
+ * @param key 字段
+ */
+const locale = (key: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let locale = i18n.en as any
+  if (Object.prototype.hasOwnProperty.call(i18n, props.lang)) {
+    locale = i18n[props.lang]
+  }
+  return locale[key]
+}
+
+const message = () => {
+  return self.msg
 }
 
 /**
@@ -1179,12 +1213,6 @@ const seek = (time: number) => {
   }
 }
 
-const error = (text: string) => {
-  closePlayer()
-  self.status = 4
-  self.hint = text
-}
-
 /**
  * 抓图
  */
@@ -1217,7 +1245,7 @@ const checkClose = () => {
  * 切换暂停与播放
  */
 const toggle = () => {
-  if (self.player) {
+  if (self.player && self.status === 3) {
     if (props.allowPause && !self.player.paused) {
       self.paused = true
     } else {
@@ -1336,6 +1364,8 @@ defineExpose({
   focused,
   getOptions,
   index,
+  locale,
+  message,
   muted,
   occupy,
   order,
@@ -1396,7 +1426,6 @@ $footerColor: rgba(30, 30, 30, 72%);
     background-position: center center;
     background-size: cover;
     box-sizing: border-box;
-    pointer-events: none;
   }
 
   .v3d-video {
