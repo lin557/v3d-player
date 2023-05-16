@@ -2,6 +2,7 @@
   <div class="demo-player">
     <v3d-player
       ref="player"
+      :allow-pause="self.allowPause"
       :border="self.border"
       :fill="self.filled"
       :controls="self.controls"
@@ -23,13 +24,6 @@
       <button @click="errorMsg">error</button>
     </div>
     <div class="demo-control">
-      <input
-        type="checkbox"
-        class="demo-check"
-        name="options-border"
-        v-model="self.border"
-      />
-      <label for="options-border">border</label>
       <input
         type="checkbox"
         class="demo-check"
@@ -58,6 +52,22 @@
         v-model="self.hasAudio"
       />
       <label for="options-audio">hasAudio(flv)</label>
+    </div>
+    <div class="demo-control">
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-border"
+        v-model="self.border"
+      />
+      <label for="options-border">border</label>
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-pause"
+        v-model="self.allowPause"
+      />
+      <label for="options-pause">allowPause</label>
       <input
         type="checkbox"
         class="demo-check"
@@ -86,6 +96,7 @@ import V3dPlayer from './components/v3d-player.vue'
 import { V3dPlayerEvents, V3dDisplay } from '../d.ts'
 
 interface Data {
+  allowPause: boolean
   controls: V3dDisplay
   poster: string
   filled: boolean
@@ -100,6 +111,7 @@ interface Data {
 }
 
 const _data: Data = {
+  allowPause: true,
   controls: 'auto',
   filled: false,
   poster: '',
@@ -139,10 +151,9 @@ const occupy = () => {
 
 const play = () => {
   const options = {
-    allowPause: true,
     autoplay: true,
     muted: false,
-    closeTime: 10000,
+    closeTime: 30000,
     // controls: true,
     preventClickToggle: true,
     theme: '#FF3366',

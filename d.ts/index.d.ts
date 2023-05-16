@@ -128,6 +128,10 @@ type __VLS_WithTemplateSlots<T, S> = T & {
 declare const V3dPlayer: __VLS_WithTemplateSlots<
   import('vue').DefineComponent<
     {
+      allowPause: {
+        type: BooleanConstructor
+        default: boolean
+      }
       border: {
         type: BooleanConstructor
         default: boolean
@@ -158,7 +162,6 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       options: {
         type: ObjectConstructor
         default(): {
-          allowPause: boolean
           autoplay: boolean
           controls: boolean
           contextmenu: never[]
@@ -222,7 +225,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
             muted?: boolean | undefined
             mutex?: boolean | undefined
             order?: number | undefined
-            preload?: import('../../d.ts').Preload | undefined
+            preload?: Preload | undefined
             preventClickToggle?: boolean | undefined
             src: string
             record?: boolean | undefined
@@ -353,6 +356,10 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       import('vue').ComponentCustomProps,
     Readonly<
       import('vue').ExtractPropTypes<{
+        allowPause: {
+          type: BooleanConstructor
+          default: boolean
+        }
         border: {
           type: BooleanConstructor
           default: boolean
@@ -383,7 +390,6 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
         options: {
           type: ObjectConstructor
           default(): {
-            allowPause: boolean
             autoplay: boolean
             controls: boolean
             contextmenu: never[]
@@ -453,6 +459,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       timeout: number
       screenshot: boolean
       fullscreen: boolean
+      allowPause: boolean
       border: boolean
       index: number
       controls: string
@@ -463,6 +470,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
   {
     ready: (_: {}) => any
     loading: (_: {}) => any
+    error: (_: {}) => any
   }
 >
 export default V3dPlayer

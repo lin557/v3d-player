@@ -18,7 +18,12 @@
         </template>
       </template>
       <template v-if="isError">
-        <v3d-error>{{ self.hint }}</v3d-error>
+        <template v-if="slots.error">
+          <slot name="error"></slot>
+        </template>
+        <template v-else>
+          <v3d-error>{{ self.hint }}</v3d-error>
+        </template>
       </template>
     </div>
     <div class="v3d-video" ref="refVideo"></div>
@@ -27,11 +32,11 @@
     </div>
     <div class="v3d-footer" ref="refFooter">
       <button
+        v-if="vIfPause"
         class="v3d-control v3d-button"
         type="button"
         title="Pause"
         aria-disabled="false"
-        v-if="self.allowPause"
         @click="toggle()"
       >
         <svg
@@ -275,6 +280,10 @@ const emits = defineEmits([
 ])
 
 const props = defineProps({
+  allowPause: {
+    type: Boolean,
+    default: true
+  },
   border: {
     type: Boolean,
     default: false
@@ -306,7 +315,6 @@ const props = defineProps({
     type: Object,
     default() {
       return {
-        allowPause: false,
         autoplay: false,
         controls: true,
         contextmenu: [],
@@ -345,7 +353,6 @@ interface CloseParam {
 }
 
 interface Data {
-  allowPause: boolean
   // 当http-flv头有音视频 但http-flv没有音频流时 自动重置播放器
   autoAudio: boolean
   // 定时关闭
@@ -392,7 +399,6 @@ interface Data {
 const ERR_MAX_AUDIO_COUNT = 10
 
 let _data: Data = {
-  allowPause: false,
   autoAudio: true,
   close: {
     id: 0,
@@ -427,7 +433,6 @@ let self = reactive(_data)
 
 const defaultOption = {
   airplay: true,
-  allowPause: false,
   autoplay: false,
   autoRate: {
     enabled: false,
@@ -557,6 +562,10 @@ const vIfTime = computed(() => {
   return self.close.id > 0 && self.close.time < 10000
 })
 
+const vIfPause = computed(() => {
+  return props.allowPause
+})
+
 const vIfScreen = computed(() => {
   return props.fullscreen
 })
@@ -567,7 +576,7 @@ const vIfSnap = computed(() => {
 
 const vIfRecord = computed(() => {
   if (self.lastOptions && self.lastOptions.record) {
-    return self.lastOptions.record
+    return self.lastOptions.record && self.status === 3
   }
   return false
 })
@@ -613,7 +622,6 @@ const createPlayer = (option: V3dPlayerOptions) => {
   self.order = opts.order
   self.unique = opts.unique
   self.title = opts.title
-  self.allowPause = opts.allowPause
 
   // console.log(opts)
   let type = getMediaType(option.src)
@@ -991,7 +999,6 @@ const destoryPlayer = () => {
   self.lastCount = 0
   self.lastFrame = 0
   self.progress = 0
-  self.allowPause = false
   self.paused = false
 }
 
@@ -1081,7 +1088,6 @@ const occupy = (order: number, unique: string, text: string) => {
     self.status = 1
     self.unique = unique
     self.title = text
-    self.allowPause = false
   }
 }
 
@@ -1212,7 +1218,7 @@ const checkClose = () => {
  */
 const toggle = () => {
   if (self.player) {
-    if (self.allowPause && !self.player.paused) {
+    if (props.allowPause && !self.player.paused) {
       self.paused = true
     } else {
       self.paused = false

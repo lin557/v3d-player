@@ -5,6 +5,7 @@
 .v3d-loading {
   left: calc(50% - 36px);
   top: calc(50% - 36px);
+  background-color: #000;
   position: absolute;
   width: 72px;
   height: 72px;
