@@ -40,6 +40,7 @@ export type V3dPlayerEvents =
   | 'resize'
   | 'fullscreen'
   | 'fullscreen_cancel'
+  | 'position'
 
 export type Preload = 'none' | 'metadata' | 'auto'
 export type VideoType =
@@ -117,6 +118,9 @@ export interface V3dPlayerOptions {
   video?: DPlayerVideo | undefined
   volume?: number | undefined
   unique?: string | undefined
+  userData?: any | undefined
+  duration?: number | undefined
+  startTime?: number | undefined
 }
 
 type __VLS_WithTemplateSlots<T, S> = T & {
@@ -254,13 +258,21 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
               | undefined
             volume?: number | undefined
             unique?: string | undefined
+            userData?: any
+            duration?: number | undefined
+            startTime?: number | undefined
           }
         | undefined
       index: () => number
       locale: (key: string) => any
       message: () => string
       muted: () => void
-      occupy: (order: number, unique: string, text: string) => void
+      occupy: (
+        order: number,
+        unique: string,
+        text: string,
+        userData: any
+      ) => void
       order: () => number
       pause: () => void
       play: (option: V3dPlayerOptions | undefined) => void
@@ -273,6 +285,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       trigger: (event: string) => void
       volume: (percentage?: number, nonotice?: boolean) => number
       unique: () => string | undefined
+      userData: () => any
     },
     unknown,
     {},
@@ -281,6 +294,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
     import('vue').ComponentOptionsMixin,
     (
       | 'progress'
+      | 'position'
       | 'ready'
       | 'timeupdate'
       | 'fetch_start'
@@ -320,6 +334,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       | 'fullscreen_cancel'
     )[],
     | 'progress'
+    | 'position'
     | 'ready'
     | 'timeupdate'
     | 'fetch_start'
@@ -447,6 +462,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       onTimeupdate?: ((...args: any[]) => any) | undefined
       onVolumechange?: ((...args: any[]) => any) | undefined
       onWaiting?: ((...args: any[]) => any) | undefined
+      onPosition?: ((...args: any[]) => any) | undefined
       onReady?: ((...args: any[]) => any) | undefined
       onFetch_start?: ((...args: any[]) => any) | undefined
       onFetch_stop?: ((...args: any[]) => any) | undefined

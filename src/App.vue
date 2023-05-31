@@ -148,13 +148,15 @@ const muted = () => {
 
 const occupy = () => {
   player.value.occupy(1, '456', '占用中')
+
+  console.log(player.value.userData())
 }
 
 const play = () => {
   const options = {
     autoplay: true,
     muted: false,
-    closeTime: 30000,
+    closeTime: 300000,
     // controls: true,
     preventClickToggle: true,
     theme: '#FF3366',
@@ -190,7 +192,11 @@ const play = () => {
     userData: {
       test1: '1',
       test2: '2'
-    }
+    },
+    // 针对http-flv显示时长
+    duration: 900,
+    // 开始时间
+    startTime: 120
   }
   player.value.play(options)
 }

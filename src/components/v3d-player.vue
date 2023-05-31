@@ -22,7 +22,7 @@
           <slot name="error"></slot>
         </template>
         <template v-else>
-          <v3d-error>{{ self.msg }}</v3d-error>
+          <v3d-error>{{ self.message }}</v3d-error>
         </template>
       </template>
     </div>
@@ -31,6 +31,13 @@
       {{ self.close.time / 1000 }}
     </div>
     <div class="v3d-footer" ref="refFooter">
+      <v3d-process-bar
+        v-if="showBar"
+        @v3dposition="handlePosition"
+        :position="self.currentTime"
+        :duration="self.duration"
+        theme-color="#2d4edf"
+      />
       <button
         v-if="vIfPause"
         class="v3d-control v3d-button"
@@ -110,12 +117,18 @@
           ></path>
         </svg>
       </button>
+      <div
+        v-if="vIfPlayTime"
+        class="v3d-control v3d-control-text v3d-control-time"
+      >
+        <span>{{ self.playTime }}</span>
+      </div>
       <div class="v3d-control v3d-control-text v3d-control-info">
         {{ titleText }}
       </div>
       <div
+        v-if="vIfSpeed"
         class="v3d-control v3d-control-text v3d-control-speed"
-        :class="speedCls"
       >
         {{ kbs }}
       </div>
@@ -143,7 +156,6 @@
       <button
         v-if="vIfSnap"
         class="v3d-control v3d-button"
-        :class="btnSnapCls"
         type="button"
         :title="locale('snap')"
         aria-disabled="false"
@@ -225,9 +237,10 @@ import Hls from 'hls.js'
 import V3dLoading from './slots/v3d-loading.vue'
 import V3dReady from './slots/v3d-ready.vue'
 import V3dError from './slots/v3d-error.vue'
+import V3dProcessBar from './process-bar/v3d-process-bar.vue'
 import Fetcher from '../utils/fetcher'
 import { V3dPlayerEvents, V3dPlayerOptions } from '../../d.ts'
-import { merge } from '../utils/utils'
+import { merge, time2Str } from '../utils/utils'
 import i18n from './i18n'
 
 // 插槽
@@ -238,7 +251,7 @@ const refPlayer = ref()
 const refVideo = ref()
 const refFooter = ref<HTMLDivElement>()
 
-const emits = defineEmits([
+const emit = defineEmits([
   // 视频事件
   'abort',
   'canplay',
@@ -278,7 +291,8 @@ const emits = defineEmits([
   'destroy',
   'resize',
   'fullscreen',
-  'fullscreen_cancel'
+  'fullscreen_cancel',
+  'position'
 ])
 
 const props = defineProps({
@@ -368,7 +382,7 @@ interface Data {
   flv: flvjs.Player | undefined
   focused: boolean
   // 提示文本
-  msg: string
+  message: string
   hls: Hls | undefined
   // last Decoded Count
   lastCount: number
@@ -399,6 +413,10 @@ interface Data {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userData: any | undefined
   width: number
+  // 时长
+  duration: number
+  currentTime: number
+  playTime: string
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
@@ -414,7 +432,7 @@ let _data: Data = {
   fetcher: undefined,
   flv: undefined,
   focused: false,
-  msg: '',
+  message: '',
   hls: undefined,
   lastCount: 0,
   lastFrame: 0,
@@ -432,7 +450,10 @@ let _data: Data = {
   title: '',
   unique: '',
   userData: undefined,
-  width: 0
+  width: 0,
+  duration: 0,
+  currentTime: 0,
+  playTime: '00:00:00/00:45:00'
 }
 
 let self = reactive(_data)
@@ -471,7 +492,9 @@ const defaultOption = {
   title: '',
   video: {},
   volume: 0.7,
-  unique: ''
+  unique: '',
+  duration: 0,
+  startTime: 0
 }
 
 const btnRecCls = computed(() => {
@@ -487,13 +510,6 @@ const btnRecCls = computed(() => {
     cls = 'v3d-hidden'
   }
   return cls
-})
-
-const btnSnapCls = computed(() => {
-  if (self.width < 245) {
-    return 'v3d-hidden'
-  }
-  return ''
 })
 
 const fillCls = computed(() => {
@@ -543,11 +559,8 @@ const posterImg = computed(() => {
   return 'background-image: url(' + props.poster + ');'
 })
 
-const speedCls = computed(() => {
-  if (self.width < 325) {
-    return 'v3d-hidden'
-  }
-  return ''
+const showBar = computed(() => {
+  return self.duration > 0
 })
 
 const statusCls = computed(() => {
@@ -572,16 +585,32 @@ const vIfTime = computed(() => {
   return self.close.id > 0 && self.close.time < 10000
 })
 
+const vIfPlayTime = computed(() => {
+  return self.duration > 0 && self.width > 252
+})
+
 const vIfPause = computed(() => {
   return props.allowPause
 })
 
 const vIfScreen = computed(() => {
-  return props.fullscreen
+  return props.fullscreen && self.width > 210
 })
 
 const vIfSnap = computed(() => {
-  return props.screenshot
+  return props.screenshot && self.width > 245
+})
+
+const vIfSpeed = computed(() => {
+  if (
+    self.width < 325 ||
+    self.status < 2 ||
+    self.status > 3 ||
+    self.speed === ''
+  ) {
+    return false
+  }
+  return true
 })
 
 const vIfRecord = computed(() => {
@@ -633,6 +662,8 @@ const createPlayer = (option: V3dPlayerOptions) => {
   self.order = opts.order
   self.unique = opts.unique
   self.title = opts.title
+  self.userData = opts.userData
+  self.duration = opts.duration
 
   // console.log(opts)
   let type = getMediaType(option.src)
@@ -853,12 +884,25 @@ const createPlayer = (option: V3dPlayerOptions) => {
           break
       }
       // console.log(self.error)
-      self.msg = self.error.message
+      self.message = self.error.message
     }
   })
   self.player.on('loadeddata', () => {
     clearTimerOut()
     self.status = 3
+    const lastDuration = self.lastOptions?.duration || 0
+
+    if (lastDuration > 0) {
+      // 说明是直播流 http-flv 或 m3u8 直播流
+      if (duration() === Infinity) {
+        // 开启进度条
+        self.duration = lastDuration
+      } else {
+        // 正常的视频
+        self.duration = duration()
+      }
+    }
+
     if (self.lastOptions) {
       self.lastOptions.replay = 0
 
@@ -914,6 +958,10 @@ const currentUrl = () => {
   return ret
 }
 
+const duration = () => {
+  return self.player?.video.duration || 0
+}
+
 const doDestroy = () => {
   if (self.player) {
     self.player.on('destroy', () => {
@@ -951,13 +999,22 @@ const clearTimerOut = () => {
 const doTimeout = () => {
   closePlayer()
   self.status = 4
-  self.msg = 'Connect timeout'
-  emits('timeout', props.index)
+  self.message = 'Connect Timeout'
+  emit('timeout', props.index)
 }
 
 const doTimeUpdate = () => {
   if (self.player) {
     self.player.on('timeupdate', () => {
+      if (self.duration > 0 && !self.paused) {
+        const startTime =
+          duration() === Infinity ? self.lastOptions?.startTime || 0 : 0
+        self.currentTime = startTime + currentTime()
+        self.playTime =
+          time2Str(self.currentTime, self.duration) +
+          '/' +
+          time2Str(self.duration, self.duration)
+      }
       if (
         self.lastOptions &&
         self.lastOptions.autoRate &&
@@ -1004,13 +1061,15 @@ const destoryPlayer = () => {
   self.lastOptions = undefined
   self.rate = 1.0
   self.speed = ''
-  self.msg = ''
+  self.message = ''
   self.title = undefined
   self.unique = undefined
   self.lastCount = 0
   self.lastFrame = 0
   self.progress = 0
   self.paused = false
+  self.userData = undefined
+  self.duration = 0
 }
 
 /**
@@ -1023,7 +1082,7 @@ const el = () => {
 const error = (msg: string) => {
   closePlayer()
   self.status = 4
-  self.msg = msg
+  self.message = msg
 }
 
 /**
@@ -1039,7 +1098,7 @@ const eventToVue = () => {
         events[item].forEach((event: string) => {
           if (self.player) {
             self.player.on(event, () => {
-              emits(event as V3dPlayerEvents, self)
+              emit(event as V3dPlayerEvents, self)
             })
           }
         })
@@ -1077,6 +1136,22 @@ const getOptions = () => {
   return self.lastOptions
 }
 
+const handlePosition = (position: number) => {
+  if (self.player) {
+    if (duration() === Infinity) {
+      // 直播流 暂停并通知外部
+      pause()
+      self.currentTime = position
+      emit('position', position)
+    } else {
+      // 非直播流
+      self.currentTime = position
+      self.player.video.currentTime = position
+      // self.player.seek(position)
+    }
+  }
+}
+
 const index = () => {
   return props.index
 }
@@ -1095,7 +1170,7 @@ const locale = (key: string) => {
 }
 
 const message = () => {
-  return self.msg
+  return self.message
 }
 
 /**
@@ -1113,7 +1188,8 @@ const muted = () => {
  * @param order {int} 创建顺序
  * @param text {string} 占用文本
  */
-const occupy = (order: number, unique: string, text: string) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const occupy = (order: number, unique: string, text: string, userData: any) => {
   if (self.status === 4) {
     close()
   }
@@ -1122,6 +1198,7 @@ const occupy = (order: number, unique: string, text: string) => {
     self.status = 1
     self.unique = unique
     self.title = text
+    self.userData = userData
   }
 }
 
@@ -1310,6 +1387,14 @@ const unique = () => {
   return self.unique
 }
 
+const userData = () => {
+  if (self.lastOptions && self.lastOptions.userData) {
+    return self.lastOptions.userData
+  } else {
+    return self.userData
+  }
+}
+
 const resize = (cr: DOMRectReadOnly) => {
   self.width = cr.width
 }
@@ -1379,7 +1464,8 @@ defineExpose({
   toggleScreen,
   trigger,
   volume,
-  unique
+  unique,
+  userData
 })
 </script>
 <style lang="scss">
@@ -1392,6 +1478,7 @@ $footerColor: rgba(30, 30, 30, 72%);
   position: relative;
   background-color: #000;
   box-sizing: border-box;
+  overflow: hidden;
 
   .dplayer {
     width: 100%;
@@ -1511,6 +1598,11 @@ $footerColor: rgba(30, 30, 30, 72%);
 
     .v3d-control-text {
       line-height: $footerHeight;
+    }
+
+    .v3d-control-time {
+      margin: 0 5px;
+      width: auto;
     }
 
     .v3d-control-speed {
