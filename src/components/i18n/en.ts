@@ -7,5 +7,7 @@ export default {
   close: 'Close',
   refresh: 'Refresh',
   record: 'Record',
-  loading: 'L O A D I N G'
+  loading: 'L O A D I N G',
+  forward: 'Forward',
+  backward: 'Backward'
 }

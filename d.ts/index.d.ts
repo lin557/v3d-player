@@ -41,6 +41,7 @@ export type V3dPlayerEvents =
   | 'fullscreen'
   | 'fullscreen_cancel'
   | 'position'
+  | 'forward'
 
 export type Preload = 'none' | 'metadata' | 'auto'
 export type VideoType =
@@ -159,6 +160,10 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
         type: StringConstructor
         default: string
       }
+      forward: {
+        type: BooleanConstructor
+        default: boolean
+      }
       screenshot: {
         type: BooleanConstructor
         default: boolean
@@ -276,7 +281,8 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       order: () => number
       pause: () => void
       play: (option: V3dPlayerOptions | undefined) => void
-      playRate: (rate: number) => number
+      playRate: (rate: number, notify?: boolean) => number
+      position: () => number
       seek: (time: number) => void
       snapshot: () => void
       status: () => number
@@ -332,6 +338,7 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       | 'resize'
       | 'fullscreen'
       | 'fullscreen_cancel'
+      | 'forward'
     )[],
     | 'progress'
     | 'position'
@@ -371,7 +378,8 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
     | 'destroy'
     | 'resize'
     | 'fullscreen'
-    | 'fullscreen_cancel',
+    | 'fullscreen_cancel'
+    | 'forward',
     import('vue').VNodeProps &
       import('vue').AllowedComponentProps &
       import('vue').ComponentCustomProps,
@@ -403,6 +411,10 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
         lang: {
           type: StringConstructor
           default: string
+        }
+        forward: {
+          type: BooleanConstructor
+          default: boolean
         }
         screenshot: {
           type: BooleanConstructor
@@ -479,12 +491,14 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       onResize?: ((...args: any[]) => any) | undefined
       onFullscreen?: ((...args: any[]) => any) | undefined
       onFullscreen_cancel?: ((...args: any[]) => any) | undefined
+      onForward?: ((...args: any[]) => any) | undefined
     },
     {
       fill: boolean
       timeout: number
       screenshot: boolean
       fullscreen: boolean
+      forward: boolean
       allowPause: boolean
       border: boolean
       index: number

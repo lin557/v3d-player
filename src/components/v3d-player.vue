@@ -36,7 +36,7 @@
         @v3dposition="handlePosition"
         :position="self.currentTime"
         :duration="self.duration"
-        theme-color="#2d4edf"
+        theme-color="#b7daff"
       />
       <button
         v-if="vIfPause"
@@ -110,22 +110,54 @@
         >
           <path
             d="M516.55839289 644.67399111v217.71423289L425.95365925 780.04102637 277.57165985 645.11696592a45.46256592 45.46256592 0 0 0-30.54584415-11.78919822l-138.33071881 0.04369067-0.44782934-291.05993955h105.94865304l-90.64235614-90.64235615h-15.3062969c-49.88867318 0.19903525-90.2224403 40.72091497-90.1945268 90.59866548v291.10363022c0 49.96634548 40.47212089 90.59866548 90.1945268 90.59866548h121.27679527L425.95365925 902.55572385l72.06775467 65.49352297c18.17653097 16.50050845 35.39550815 21.10137837 48.94811023 21.10137836 10.46270103 0 18.80640475-2.74280297 23.61116444-4.88850015 11.05980682-4.88850015 36.70622815-20.92418845 36.70622816-64.2993114V735.40494222l-90.72852386-90.73095111zM918.12173748 546.86636563c0 88.342528-22.64996978 152.06536533-47.47233659 195.68442785l63.29806696 63.30413511c36.10912237-55.672832 71.01189689-140.10019082 71.0118969-259.03225362 0-241.58025955-149.30071703-341.37945125-155.68804978-345.49365572a42.860544 42.860544 0 0 0-32.59687822-5.88367643 42.958848 42.958848 0 0 0-27.05059083 19.11102577c-12.97248711 20.32708267-7.38736355 47.31213748 12.60233008 60.82590341 4.66640592 3.16150518 115.89556148 80.11290548 115.89556148 271.48409363z"
-            p-id="1645"
           ></path>
           <path
             d="M676.68589985 410.21652385c2.7646483 1.43815111 67.79941925 35.70012918 67.79941926 133.42037333 0 25.19373748-3.65545245 46.11792592-9.05731793 63.67914667l66.28359585 66.289664c16.6667757-32.5592557 29.56765867-74.65035852 29.56765867-129.92512 0-155.22929778-112.40152178-210.65819022-117.15652267-212.95801837v0.04369067a42.94185718 42.94185718 0 0 0-32.92334458-1.57043674 42.90059378 42.90059378 0 0 0-24.31992415 22.22884029c-10.28551111 21.74338845-1.53766875 47.710208 19.80643555 58.79186015zM397.38239052 269.27650133l28.53364623-25.94497422 90.64235614-82.39210193V388.4525037l90.73095111 90.73095112V103.38668089c0-29.9705837-13.7746963-53.90336-36.84458192-64.14396681-11.09864297-4.88850015-40.38352592-13.09385008-72.51072949 16.14612859l-71.9791597 65.42677333-92.72737186 84.29385955 64.15488949 64.16702578zM897.04341808 942.34821215c-11.59016297 0-23.18032592-4.42368-32.02768593-13.27104l-770.0844089-770.0844089c-17.69472-17.69472-17.69472-46.36065185 0-64.05537184 17.69472-17.69472 46.36065185-17.69472 64.05537186 0l770.08440889 770.08319526c17.69472 17.69472 17.69472 46.36065185 0 64.05537185-8.84736 8.84857363-20.43752297 13.27225363-32.02768592 13.27225363z"
           ></path>
         </svg>
       </button>
-      <div
-        v-if="vIfPlayTime"
-        class="v3d-control v3d-control-text v3d-control-time"
+      <button
+        class="v3d-control v3d-button"
+        type="button"
+        v-if="vIfForward && self.width > 160"
+        :title="locale('backward')"
+        aria-disabled="false"
+        @click="rateChange(false)"
       >
-        <span>{{ self.playTime }}</span>
-      </div>
+        <svg
+          class="svg-footer"
+          viewBox="0 0 1239 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M588.18075567 62.85462822a73.37965518 73.37965518 0 0 1 29.35186172 6.35957051 75.82564336 75.82564336 0 0 1 45.00618837 69.95527119l0 273.95071084L1047.04819815 81.44414053a72.40125937 72.40125937 0 0 1 78.760829-13.20833761A75.82564336 75.82564336 0 0 1 1170.81521552 139.16946992L1170.81521552 885.68515918A75.82564336 75.82564336 0 0 1 1125.31982969 955.6404295a72.40125937 72.40125937 0 0 1-78.76082988-13.69753507l-383.53099571-331.67604023L663.02800411 885.68515918a75.82564336 75.82564336 0 0 1-45.49538672 69.95527031 72.40125937 72.40125937 0 0 1-79.25002735-13.69753506L106.81021943 570.64184052a76.80403916 76.80403916 0 0 1 0-113.00466884L539.26098584 81.44414053a72.89045683 72.89045683 0 0 1 48.91976983-18.58951231z m508.76560722 76.80403916l-432.93996386 372.76864717 431.4723706 375.21463535 0-748.47247998z m-507.78721143 0l-432.93996474 372.76864717 431.47237148 375.21463535 0-748.47247998z"
+          ></path>
+        </svg>
+      </button>
+      <button
+        class="v3d-control v3d-button"
+        type="button"
+        v-if="vIfForward && self.width > 160"
+        :title="locale('forward')"
+        aria-disabled="false"
+        @click="rateChange(true)"
+      >
+        <svg
+          class="svg-footer"
+          viewBox="0 0 1239 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M652.65257763 961.14537178a73.37965518 73.37965518 0 0 1-29.35186171-6.35957052 75.82564336 75.82564336 0 0 1-45.00618838-69.95527118l0-273.95071084L193.78513516 942.55585947a72.40125937 72.40125937 0 0 1-78.76082901 13.20833761A75.82564336 75.82564336 0 0 1 70.01811777 884.83053008L70.01811778 138.31484082A75.82564336 75.82564336 0 0 1 115.51350362 68.3595705a72.40125937 72.40125937 0 0 1 78.76082987 13.69753507l383.53099572 331.67604023L577.8053292 138.31484082a75.82564336 75.82564336 0 0 1 45.49538672-69.95527031 72.40125937 72.40125937 0 0 1 79.25002734 13.69753507L1134.02311386 453.35815948a76.80403916 76.80403916 0 0 1 1e-8 113.00466884L701.57234746 942.55585948a72.89045683 72.89045683 0 0 1-48.91976983 18.5895123z m-508.76560722-76.80403916l432.93996387-372.76864717-431.47237061-375.21463535 0 748.47247998z m507.78721142 0l432.93996475-372.76864718-431.47237148-375.21463535 0 748.47247999z"
+          ></path>
+        </svg>
+      </button>
       <div class="v3d-control v3d-control-text v3d-control-info">
         {{ titleText }}
       </div>
+      <div class="v3d-control v3d-control-text v3d-control-empty"></div>
       <div
         v-if="vIfSpeed"
         class="v3d-control v3d-control-text v3d-control-speed"
@@ -292,7 +324,8 @@ const emit = defineEmits([
   'resize',
   'fullscreen',
   'fullscreen_cancel',
-  'position'
+  'position',
+  'forward'
 ])
 
 const props = defineProps({
@@ -322,6 +355,10 @@ const props = defineProps({
   lang: {
     type: String,
     default: 'en'
+  },
+  forward: {
+    type: Boolean,
+    default: false
   },
   screenshot: {
     type: Boolean,
@@ -413,10 +450,18 @@ interface Data {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userData: any | undefined
   width: number
-  // 时长
+  // 总时长
   duration: number
   currentTime: number
-  playTime: string
+  // 视频播放时间
+  playTime: number
+  // 播放开始时间
+  firstTime: number
+  // 播放时间文本
+  timeText: string
+  video?: HTMLMediaElement
+  // 速率文本
+  rateText: string
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
@@ -453,7 +498,11 @@ let _data: Data = {
   width: 0,
   duration: 0,
   currentTime: 0,
-  playTime: '00:00:00/00:45:00'
+  playTime: 0,
+  firstTime: 0,
+  timeText: '00:00:00/00:45:00',
+  video: undefined,
+  rateText: '1X'
 }
 
 let self = reactive(_data)
@@ -560,7 +609,7 @@ const posterImg = computed(() => {
 })
 
 const showBar = computed(() => {
-  return self.duration > 0
+  return self.duration > 0 && self.status === 3
 })
 
 const statusCls = computed(() => {
@@ -581,12 +630,12 @@ const playTitle = computed(() => {
   return self.paused ? locale('play') : locale('pause')
 })
 
-const vIfTime = computed(() => {
-  return self.close.id > 0 && self.close.time < 10000
+const vIfForward = computed(() => {
+  return props.forward // && self.width > 270
 })
 
-const vIfPlayTime = computed(() => {
-  return self.duration > 0 && self.width > 252
+const vIfTime = computed(() => {
+  return self.close.id > 0 && self.close.time < 10000
 })
 
 const vIfPause = computed(() => {
@@ -621,10 +670,15 @@ const vIfRecord = computed(() => {
 })
 
 const titleText = computed(() => {
-  if (self.title) {
-    return self.title
+  let text = self.rateText
+  if (self.timeText.length > 0) {
+    text = text + ' ' + self.timeText
   }
-  return ''
+  if (self.title) {
+    text = text.trim() + ' ' + self.title
+  }
+
+  return text.trim()
 })
 
 const bufferedEnd = () => {
@@ -682,98 +736,8 @@ const createPlayer = (option: V3dPlayerOptions) => {
         flvjs.LoggingControl.enableVerbose = false
         flvjs.LoggingControl.enableWarn = false
         flvjs.LoggingControl.enableError = false
-        const flvPlayer = flvjs.createPlayer(
-          {
-            type: 'flv',
-            url: video.src,
-            isLive: true,
-            cors: true,
-            withCredentials: false,
-            hasAudio: option.hasAudio
-          },
-          {
-            // 启用IO存储缓冲区。如果您需要实时流播放的实时（最小延迟），则设置为false
-            enableStashBuffer: false,
-            // 禁用音视频同步
-            fixAudioTimestampGap: false
-          }
-        )
-        flvPlayer.on(flvjs.Events.ERROR, (errType, errDetails, e) => {
-          // this.status = 4
-          // this.error = this.getError('(flv) ' + e.msg)
-          // console.log(errType)
-          switch (errType) {
-            case flvjs.ErrorTypes.NETWORK_ERROR:
-              // 存在多种情况 以下是常见几种
-              // ERR_FAILED 504 连接到srs 超过1分钟一直没有等到流时提示  Exception
-              // ERR_CONNECTION_REFUSED 访问到一个不存在的IP地址时 Exception
-              // ERR_CONNECTION_TIMED_OUT IP地址存在 端口不存在时 Exception
-              // ERR_INCOMPLETE_CHUNKED_ENCODING 服务器停止推流 UnrecoverableEarlyEof
-              self.error = {
-                code: 2,
-                message: 'MEDIA_ERR_NETWORK: (flv) ' + e.msg
-              }
-              break
-            case flvjs.ErrorTypes.MEDIA_ERROR:
-              self.error = {
-                code: 3,
-                message: 'MEDIA_ERR_DECODE: (flv) ' + e.msg
-              }
-              break
-            case flvjs.ErrorTypes.OTHER_ERROR:
-              self.error = {
-                code: 4,
-                message: 'OTHER_ERROR: (flv) ' + e.msg
-              }
-              break
-          }
-          trigger('error')
-          self.error = undefined
-        })
-        flvPlayer.on(flvjs.Events.STATISTICS_INFO, info => {
-          self.speed = info.speed.toFixed(0)
-          if (self.autoAudio && self.lastOptions && self.lastOptions.hasAudio) {
-            // 有下载 但一直无法解码 表示无音频
-            if (info.speed > 0 && info.decodedFrames === 0) {
-              self.progress++
-              if (self.progress >= ERR_MAX_AUDIO_COUNT) {
-                window.console.warn(
-                  currentUrl() +
-                    ' has no audio data, video will auto reset to play.'
-                )
-                // 关掉音频 自动重载
-                self.lastOptions.hasAudio = false
-                play(self.lastOptions)
-                return
-              }
-            }
-          }
-
-          if (self.lastFrame === 0) {
-            self.lastFrame = info.decodedFrames
-            return
-          }
-          if (self.lastFrame !== info.decodedFrames) {
-            self.lastFrame = info.decodedFrames
-            self.lastCount = 0
-          } else {
-            self.lastCount++
-            // 30 约等于18秒 画面卡死时重连
-            if (self.lastCount >= 30) {
-              self.lastCount = 0
-              self.lastFrame = 0
-              replay(300, 'no decoded frame')
-            }
-          }
-        })
-        flvPlayer.attachMediaElement(video)
-        flvPlayer.load()
-
-        self.flv = flvPlayer
-        // 创建一个超时定时器 30秒
-        self.timerOut = setTimeout(() => {
-          doTimeout()
-        }, props.timeout)
+        self.video = video
+        createFlvPlayer(video, option)
       },
       customHls: (video: HTMLMediaElement) => {
         const hls = new Hls({
@@ -843,13 +807,24 @@ const createPlayer = (option: V3dPlayerOptions) => {
     self.fetcher = new Fetcher(self.player, { live: opts.live })
   }
 
-  doDestroy()
+  onDestroy()
 
   // 自动播放状态也要隐藏
   self.player.on('playing' as DPlayerEvents, () => {
     if (self.player) {
       self.player.controller.setAutoHide()
     }
+    // console.log(self.flv._transmuxer._controller)
+    // self.flv._transmuxer._controller._demuxer._audioMetadata = null
+
+    // self.flv._transmuxer._controller._demuxer._audioInitialMetadataDispatched =
+    //   false
+    // self.flv._transmuxer._controller._demuxer._hasAudio = false
+    // self.flv._transmuxer._controller._demuxer._mediaInfo._hasAudio = false
+
+    // self.flv._transmuxer._controller._remuxer._audioMeta = null
+    // self.flv._transmuxer._controller._remuxer._audioNextDts = null
+    // self.flv._transmuxer._controller._remuxer._audioStashedLastSample = null
   })
   self.player.on('pause', () => {
     // 实时流不允许隐藏时暂停
@@ -894,12 +869,16 @@ const createPlayer = (option: V3dPlayerOptions) => {
 
     if (lastDuration > 0) {
       // 说明是直播流 http-flv 或 m3u8 直播流
-      if (duration() === Infinity) {
-        // 开启进度条
+      if (isLive()) {
+        // 开启实时流进度条
         self.duration = lastDuration
       } else {
         // 正常的视频
+        const startTime = self.lastOptions?.startTime || 0
         self.duration = duration()
+        if (self.player && startTime > 0) {
+          self.player.video.currentTime = startTime
+        }
       }
     }
 
@@ -958,11 +937,105 @@ const currentUrl = () => {
   return ret
 }
 
+const createFlvPlayer = (video: HTMLMediaElement, option: V3dPlayerOptions) => {
+  const flvPlayer = flvjs.createPlayer(
+    {
+      type: 'flv',
+      url: video.src,
+      isLive: true,
+      cors: true,
+      withCredentials: false,
+      hasAudio: option.hasAudio
+    },
+    {
+      // 启用IO存储缓冲区。如果您需要实时流播放的实时（最小延迟），则设置为false
+      enableStashBuffer: false,
+      // 禁用音视频同步
+      fixAudioTimestampGap: false
+    }
+  )
+  flvPlayer.on(flvjs.Events.ERROR, (errType, errDetails, e) => {
+    // this.status = 4
+    // this.error = this.getError('(flv) ' + e.msg)
+    // console.log(errType)
+    switch (errType) {
+      case flvjs.ErrorTypes.NETWORK_ERROR:
+        // 存在多种情况 以下是常见几种
+        // ERR_FAILED 504 连接到srs 超过1分钟一直没有等到流时提示  Exception
+        // ERR_CONNECTION_REFUSED 访问到一个不存在的IP地址时 Exception
+        // ERR_CONNECTION_TIMED_OUT IP地址存在 端口不存在时 Exception
+        // ERR_INCOMPLETE_CHUNKED_ENCODING 服务器停止推流 UnrecoverableEarlyEof
+        self.error = {
+          code: 2,
+          message: 'MEDIA_ERR_NETWORK: (flv) ' + e.msg
+        }
+        break
+      case flvjs.ErrorTypes.MEDIA_ERROR:
+        self.error = {
+          code: 3,
+          message: 'MEDIA_ERR_DECODE: (flv) ' + e.msg
+        }
+        break
+      case flvjs.ErrorTypes.OTHER_ERROR:
+        self.error = {
+          code: 4,
+          message: 'OTHER_ERROR: (flv) ' + e.msg
+        }
+        break
+    }
+    trigger('error')
+    self.error = undefined
+  })
+  flvPlayer.on(flvjs.Events.STATISTICS_INFO, info => {
+    self.speed = info.speed.toFixed(0)
+    if (self.autoAudio && self.lastOptions && self.lastOptions.hasAudio) {
+      // 有下载 但一直无法解码 表示无音频
+      if (info.speed > 0 && info.decodedFrames === 0) {
+        self.progress++
+        if (self.progress >= ERR_MAX_AUDIO_COUNT) {
+          window.console.warn(
+            currentUrl() + ' has no audio data, video will auto reset to play.'
+          )
+          // 关掉音频 自动重载
+          self.lastOptions.hasAudio = false
+          play(self.lastOptions)
+          return
+        }
+      }
+    }
+
+    if (self.lastFrame === 0) {
+      self.lastFrame = info.decodedFrames
+      return
+    }
+    if (self.lastFrame !== info.decodedFrames) {
+      self.lastFrame = info.decodedFrames
+      self.lastCount = 0
+    } else {
+      self.lastCount++
+      // 30 约等于18秒 画面卡死时重连
+      if (self.lastCount >= 30) {
+        self.lastCount = 0
+        self.lastFrame = 0
+        replay(300, 'no decoded frame')
+      }
+    }
+  })
+  flvPlayer.attachMediaElement(video)
+  flvPlayer.load()
+
+  self.flv = flvPlayer
+  // 创建一个超时定时器 30秒
+  self.timerOut = setTimeout(() => {
+    doTimeout()
+  }, props.timeout)
+}
+
 const duration = () => {
   return self.player?.video.duration || 0
 }
 
-const doDestroy = () => {
+const onDestroy = () => {
   if (self.player) {
     self.player.on('destroy', () => {
       if (self.flv) {
@@ -971,6 +1044,7 @@ const doDestroy = () => {
         self.flv.destroy()
         self.flv = undefined
       }
+
       if (self.hls) {
         self.hls.destroy()
         self.hls = undefined
@@ -1003,14 +1077,59 @@ const doTimeout = () => {
   emit('timeout', props.index)
 }
 
+const getForward = () => {
+  let ret
+  switch (self.rate) {
+    case 2:
+      ret = 2
+      break
+    case 3:
+      ret = 4
+      break
+    case 4:
+      ret = 8
+      break
+    case 5:
+      ret = 16
+      break
+    default:
+      ret = 1
+  }
+  return ret
+}
+
 const doTimeUpdate = () => {
   if (self.player) {
     self.player.on('timeupdate', () => {
+      const forward = getForward()
+      if (props.forward && isLive()) {
+        self.rateText = forward.toString() + 'X'
+      } else {
+        self.rateText = ''
+      }
       if (self.duration > 0 && !self.paused) {
-        const startTime =
-          duration() === Infinity ? self.lastOptions?.startTime || 0 : 0
-        self.currentTime = startTime + currentTime()
-        self.playTime =
+        if (isLive()) {
+          const startTime = self.lastOptions?.startTime || 0
+          const cur = currentTime()
+          // 经过的时间
+          const use = (cur - self.firstTime) * forward
+          self.firstTime = cur
+          self.playTime = self.playTime + use
+          self.currentTime = startTime + self.playTime
+
+          // const newTime = startTime + currentTime() - self.lastTime
+          // // 经过的时间
+          // const overTime = newTime - self.currentTime
+          // console.log(newTime)
+          // console.log(overTime)
+
+          // self.currentTime = startTime + currentTime() - self.lastTime
+          // self.currentTime = newTime + overTime
+        } else {
+          self.currentTime = currentTime()
+        }
+
+        self.timeText =
           time2Str(self.currentTime, self.duration) +
           '/' +
           time2Str(self.duration, self.duration)
@@ -1026,10 +1145,10 @@ const doTimeUpdate = () => {
         const end = bufferedEnd()
 
         if (end - cur > self.lastOptions.autoRate.max) {
-          playRate(1.5)
+          playRate(1.5, true)
         }
         if (end - cur < self.lastOptions.autoRate.min) {
-          playRate(1.0)
+          playRate(1.0, true)
         }
       }
     })
@@ -1070,6 +1189,8 @@ const destoryPlayer = () => {
   self.paused = false
   self.userData = undefined
   self.duration = 0
+  self.playTime = 0
+  self.firstTime = 0
 }
 
 /**
@@ -1136,11 +1257,19 @@ const getOptions = () => {
   return self.lastOptions
 }
 
+const isLive = () => {
+  return duration() === Infinity
+}
+
 const handlePosition = (position: number) => {
   if (self.player) {
-    if (duration() === Infinity) {
-      // 直播流 暂停并通知外部
-      pause()
+    if (isLive()) {
+      // 直播流 通知外部
+      if (self.lastOptions) {
+        self.lastOptions.startTime = position
+      }
+      self.rate = 1
+      self.playTime = 0
       self.currentTime = position
       emit('position', position)
     } else {
@@ -1230,15 +1359,22 @@ const play = (option: V3dPlayerOptions | undefined) => {
  * 修改播放速度
  * @param rate 速度 0.5 1.0 1.5
  */
-const playRate = (rate: number) => {
+const playRate = (rate: number, notify?: boolean) => {
   if (self.player) {
     if (self.rate !== rate) {
       self.rate = rate
       self.player.speed(rate)
-      window.console.warn(currentUrl() + ' play rate change to ' + self.rate)
+      self.player.notice('x ' + self.rate.toString(), 1500, 0.7)
+      if (notify) {
+        window.console.warn(currentUrl() + ' play rate change to ' + self.rate)
+      }
     }
   }
   return self.rate
+}
+
+const position = () => {
+  return self.currentTime
 }
 
 // const randomString = (len: number) => {
@@ -1314,6 +1450,46 @@ const checkClose = () => {
     if (self.close.time <= 0) {
       // 时间到
       close()
+    }
+  }
+}
+
+const newRate = (fast: boolean) => {
+  const rates = [0.25, 0.5, 1, 2, 3, 4, 5]
+  const index = rates.indexOf(self.rate)
+  if (index === -1) {
+    return 0
+  }
+  return fast
+    ? index === rates.length - 1
+      ? 0
+      : rates[index + 1]
+    : index === 0
+    ? 0
+    : rates[index - 1]
+}
+
+const rateChange = (isFast: boolean) => {
+  if (!self.player || !props.forward) {
+    return
+  }
+  if (isLive()) {
+    if (self.lastOptions?.hasAudio) {
+      // 关掉flv
+      if (self.flv) {
+        self.lastOptions.hasAudio = false
+        play(self.lastOptions)
+      }
+    }
+    const rate = newRate(isFast)
+    if (rate >= 1) {
+      self.rate = rate
+      emit('forward', rate)
+    }
+  } else {
+    const rate = newRate(isFast)
+    if (rate > 0) {
+      playRate(rate)
     }
   }
 }
@@ -1428,6 +1604,15 @@ watch(
   }
 )
 
+watch(
+  () => props.forward,
+  () => {
+    if (!props.forward) {
+      self.rateText = ''
+    }
+  }
+)
+
 onBeforeUnmount(() => {
   destoryPlayer()
 })
@@ -1457,6 +1642,7 @@ defineExpose({
   pause,
   play,
   playRate,
+  position,
   seek,
   snapshot,
   status,
@@ -1600,23 +1786,34 @@ $footerColor: rgba(30, 30, 30, 72%);
       line-height: $footerHeight;
     }
 
-    .v3d-control-time {
-      margin: 0 5px;
-      width: auto;
-    }
-
     .v3d-control-speed {
       width: 55px;
     }
 
     .v3d-control-info {
-      width: 20px;
-      flex-grow: 1;
       text-align: left;
       margin: 0 3px;
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
+      width: 20px;
+      flex-grow: 1;
+    }
+
+    .v3d-rate {
+      position: relative;
+      div {
+        position: absolute;
+        left: 0;
+        top: -20px;
+
+        ul {
+          list-style-type: none;
+          li {
+            display: block;
+          }
+        }
+      }
     }
 
     .v3d-fetching {
@@ -1697,7 +1894,7 @@ $footerColor: rgba(30, 30, 30, 72%);
   }
 
   &.v3d-focus {
-    border-color: #2d4edf !important;
+    border-color: #b7daff !important;
   }
 }
 </style>

@@ -5,12 +5,15 @@
       lang="zh-cn"
       :allow-pause="self.allowPause"
       :border="self.border"
+      :forward="self.forward"
       :fill="self.filled"
       :controls="self.controls"
       :screenshot="self.screenshot"
       :fullscreen="self.fullscreen"
       :poster="self.poster"
       @timeout="handleError"
+      @position="handlePosition"
+      @forward="handleForward"
     >
     </v3d-player>
 
@@ -83,18 +86,30 @@
         v-model="self.fullscreen"
       />
       <label for="options-fullscreen">fullscreen</label>
+      <input
+        type="checkbox"
+        class="demo-check"
+        name="options-forward"
+        v-model="self.forward"
+      />
+      <label for="options-fullscreen">forward</label>
     </div>
     <div class="demo-control">
       <input type="text" class="demo-url" v-model="self.src" />
       <button @click="play">play</button>
       <button @click="close">close</button>
     </div>
+    <!-- <div class="demo-control demo-flv">
+      <div><button @click="create">create</button></div>
+      <video ref="videoRef" controls></video>
+    </div> -->
   </div>
 </template>
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import V3dPlayer from './components/v3d-player.vue'
 import { V3dPlayerEvents, V3dDisplay } from '../d.ts'
+import flvjs from 'flv.js'
 
 interface Data {
   allowPause: boolean
@@ -109,6 +124,7 @@ interface Data {
   hasAudio: boolean
   screenshot: boolean
   fullscreen: boolean
+  forward: boolean
 }
 
 const _data: Data = {
@@ -117,18 +133,87 @@ const _data: Data = {
   filled: false,
   poster: '',
   border: false,
-  src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8',
+  src: 'https://dno-xiu-hd.youku.com/lfgame/cmcu_alias_1891330092_8063939.flv?auth_key=1718194311-0-0-8d16158fcc3e0c60e1d08550dce02931',
+  //src: 'https://dno-xiu-hd.youku.com/lfgame/cmcu_alias_1083973850_8151419.flv?auth_key=1718161205-0-0-65ba80dcc2159dde59f49c936ef46c81',
+  // src: 'https://dno-xiu-hd.youku.com/lfgame/cmcu_alias_1800902400_8142744.flv?auth_key=1718193060-0-0-ecf09a39f02193d81c5f13fc0991fd08',
+  //src: '//d2zihajmogu5jn.cloudfront.net/bipbop-advanced/gear3/prog_index.m3u8',
   live: true,
   record: true,
   connect: true,
   hasAudio: true,
   screenshot: true,
-  fullscreen: true
+  fullscreen: true,
+  forward: true
 }
 
 let self = reactive(_data)
 
 const player = ref()
+
+const videoRef = ref()
+
+let flvPlayer: flvjs.Player
+
+const create = () => {
+  if (flvPlayer) {
+    flvPlayer.unload()
+    flvPlayer.detachMediaElement()
+    flvPlayer.destroy()
+  }
+  flvPlayer = flvjs.createPlayer(
+    {
+      type: 'flv',
+      url: self.src,
+      isLive: true,
+      cors: true,
+      withCredentials: false,
+      hasAudio: self.hasAudio
+    },
+    {
+      // 启用IO存储缓冲区。如果您需要实时流播放的实时（最小延迟），则设置为false
+      enableStashBuffer: false,
+      // 禁用音视频同步
+      fixAudioTimestampGap: true
+    }
+  )
+  flvPlayer.attachMediaElement(videoRef.value)
+  flvPlayer.load()
+
+  flvPlayer.on(flvjs.Events.MEDIA_INFO, () => {
+    // console.log(flvPlayer._transmuxer._controller)
+  })
+
+  flvPlayer.play()
+
+  // setTimeout(() => {
+  //   console.log(flvPlayer)
+  //   // flvPlayer._transmuxer._controller._demuxer.overridedHasAudio = false
+  //   console.log(flvPlayer._msectl._sourceBuffers)
+  //   flvPlayer._transmuxer._controller._remuxer._audioMeta = null
+  //   flvPlayer._transmuxer._controller._remuxer._audioNextDts = undefined
+  //   flvPlayer._transmuxer._controller._remuxer._audioStashedLastSample = null
+  //   // flvPlayer._msectl._sourceBuffers.audio = null
+  // }, 2000)
+
+  // setTimeout(() => {
+  //   const flvPlayer = flvjs.createPlayer(
+  //     {
+  //       type: 'flv',
+  //       url: self.src,
+  //       isLive: true,
+  //       cors: true,
+  //       withCredentials: false,
+  //       hasAudio: false
+  //     },
+  //     {
+  //       // 启用IO存储缓冲区。如果您需要实时流播放的实时（最小延迟），则设置为false
+  //       enableStashBuffer: false,
+  //       // 禁用音视频同步
+  //       fixAudioTimestampGap: true
+  //     }
+  //   )
+  // }, 3000)
+}
 
 const close = () => {
   player.value.close()
@@ -140,6 +225,14 @@ const errorMsg = () => {
 
 const handleError = (e: V3dPlayerEvents) => {
   console.log(e)
+}
+
+const handlePosition = (position: number) => {
+  console.log(position)
+}
+
+const handleForward = (rate: number) => {
+  console.log('forward: ' + rate)
 }
 
 const muted = () => {
@@ -159,7 +252,8 @@ const play = () => {
     closeTime: 300000,
     // controls: true,
     preventClickToggle: true,
-    theme: '#FF3366',
+    // theme: '#FF3366',
+    theme: '#b7daff',
     volume: 0.6,
     connect: self.connect,
     hasAudio: self.hasAudio,
@@ -193,10 +287,10 @@ const play = () => {
       test1: '1',
       test2: '2'
     },
-    // 针对http-flv显示时长
-    duration: 900,
     // 开始时间
-    startTime: 120
+    startTime: 120,
+    // 针对http-flv显示时长
+    duration: 300
   }
   player.value.play(options)
 }

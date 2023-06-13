@@ -7,5 +7,7 @@ export default {
   close: '关闭',
   refresh: '刷新',
   record: '录像',
-  loading: '加载中'
+  loading: '加载中',
+  forward: '快进',
+  backward: '慢进'
 }

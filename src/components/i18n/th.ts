@@ -7,5 +7,7 @@ export default {
   close: 'ปิด',
   refresh: 'รีเฟรช',
   record: 'บันทึก',
-  loading: 'กำลังโหลด'
+  loading: 'กำลังโหลด',
+  forward: 'ซึ่งไปข้างหน้า',
+  backward: 'ย้อนกลับ'
 }

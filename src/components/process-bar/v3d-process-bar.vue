@@ -31,7 +31,7 @@ export interface PropsBar {
 const props = withDefaults(defineProps<PropsBar>(), {
   position: 0,
   duration: 100,
-  themeColor: '#2d4edf'
+  themeColor: '#b7daff'
 })
 
 const emit = defineEmits<{
@@ -129,7 +129,7 @@ const px2second = (offsetX: number) => {
 <style lang="scss">
 .v3d-bar-wrapper {
   position: absolute;
-  top: -11px;
+  top: -10px;
   height: 13px;
   width: 100%;
   z-index: 5;
