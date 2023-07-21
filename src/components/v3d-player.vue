@@ -119,7 +119,7 @@
       <button
         class="v3d-control v3d-button"
         type="button"
-        v-if="vIfForward && self.width > 160"
+        v-if="props.forward && self.width > 160"
         :title="locale('backward')"
         aria-disabled="false"
         @click="rateChange(false)"
@@ -138,7 +138,7 @@
       <button
         class="v3d-control v3d-button"
         type="button"
-        v-if="vIfForward && self.width > 160"
+        v-if="props.forward && self.width > 160"
         :title="locale('forward')"
         aria-disabled="false"
         @click="rateChange(true)"
@@ -455,8 +455,8 @@ interface Data {
   currentTime: number
   // 视频播放时间
   playTime: number
-  // 播放开始时间
-  firstTime: number
+  // 上一帧播放开始时间
+  lastTime: number
   // 播放时间文本
   timeText: string
   video?: HTMLMediaElement
@@ -499,7 +499,7 @@ let _data: Data = {
   duration: 0,
   currentTime: 0,
   playTime: 0,
-  firstTime: 0,
+  lastTime: 0,
   timeText: '00:00:00/00:45:00',
   video: undefined,
   rateText: '1X'
@@ -630,10 +630,6 @@ const playTitle = computed(() => {
   return self.paused ? locale('play') : locale('pause')
 })
 
-const vIfForward = computed(() => {
-  return props.forward // && self.width > 270
-})
-
 const vIfTime = computed(() => {
   return self.close.id > 0 && self.close.time < 10000
 })
@@ -671,7 +667,7 @@ const vIfRecord = computed(() => {
 
 const titleText = computed(() => {
   let text = self.rateText
-  if (self.timeText.length > 0) {
+  if (self.duration > 0) {
     text = text + ' ' + self.timeText
   }
   if (self.title) {
@@ -1081,21 +1077,25 @@ const getForward = () => {
   let ret
   switch (self.rate) {
     case 2:
+    case 0.5:
       ret = 2
       break
     case 3:
+    case 0.25:
       ret = 4
       break
     case 4:
+    case 0.125:
       ret = 8
       break
     case 5:
+    case 0.0625:
       ret = 16
       break
     default:
       ret = 1
   }
-  return ret
+  return self.rate < 1 ? 0 - ret : ret
 }
 
 const doTimeUpdate = () => {
@@ -1112,8 +1112,11 @@ const doTimeUpdate = () => {
           const startTime = self.lastOptions?.startTime || 0
           const cur = currentTime()
           // 经过的时间
-          const use = (cur - self.firstTime) * forward
-          self.firstTime = cur
+          let use =
+            self.rate < 1
+              ? cur - self.lastTime
+              : (cur - self.lastTime) * forward
+          self.lastTime = cur
           self.playTime = self.playTime + use
           self.currentTime = startTime + self.playTime
 
@@ -1190,7 +1193,7 @@ const destoryPlayer = () => {
   self.userData = undefined
   self.duration = 0
   self.playTime = 0
-  self.firstTime = 0
+  self.lastTime = 0
 }
 
 /**
@@ -1268,7 +1271,7 @@ const handlePosition = (position: number) => {
       if (self.lastOptions) {
         self.lastOptions.startTime = position
       }
-      self.rate = 1
+      playRate(1)
       self.playTime = 0
       self.currentTime = position
       emit('position', position)
@@ -1364,7 +1367,6 @@ const playRate = (rate: number, notify?: boolean) => {
     if (self.rate !== rate) {
       self.rate = rate
       self.player.speed(rate)
-      self.player.notice('x ' + self.rate.toString(), 1500, 0.7)
       if (notify) {
         window.console.warn(currentUrl() + ' play rate change to ' + self.rate)
       }
@@ -1455,7 +1457,7 @@ const checkClose = () => {
 }
 
 const newRate = (fast: boolean) => {
-  const rates = [0.25, 0.5, 1, 2, 3, 4, 5]
+  const rates = [0.0625, 0.125, 0.25, 0.5, 1, 2, 3, 4, 5]
   const index = rates.indexOf(self.rate)
   if (index === -1) {
     return 0
@@ -1474,14 +1476,32 @@ const rateChange = (isFast: boolean) => {
     return
   }
   if (isLive()) {
-    if (self.lastOptions?.hasAudio) {
-      // 关掉flv
-      if (self.flv) {
-        self.lastOptions.hasAudio = false
-        play(self.lastOptions)
+    const rate = newRate(isFast)
+    if (rate === 0) {
+      return
+    }
+    if (rate > 1) {
+      if (self.lastOptions?.hasAudio) {
+        // 关掉flv
+        if (self.flv) {
+          self.lastOptions.hasAudio = false
+          play(self.lastOptions)
+        }
+      }
+    } else {
+      // <=1
+      playRate(rate)
+      // 不触发指令
+      if (rate < 1) {
+        return
+      } else {
+        // =1
+        if (isFast) {
+          return
+        }
       }
     }
-    const rate = newRate(isFast)
+
     if (rate >= 1) {
       self.rate = rate
       emit('forward', rate)

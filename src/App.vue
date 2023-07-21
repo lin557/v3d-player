@@ -290,7 +290,7 @@ const play = () => {
     // 开始时间
     startTime: 120,
     // 针对http-flv显示时长
-    duration: 300
+    duration: 0
   }
   player.value.play(options)
 }
