@@ -261,7 +261,6 @@ import {
 } from 'vue'
 import Dplayer from 'dplayer-lite'
 import { DPlayerEvents, DPlayerOptions } from 'dplayer-lite'
-import flvjs from 'flv.js'
 // 这是hls的bug 在vite4时会出现错误
 import Hls from 'hls.js'
 // import Hls from 'hls.js/dist/hls.min.js'
@@ -274,6 +273,7 @@ import Fetcher from '../utils/fetcher'
 import { V3dPlayerEvents, V3dPlayerOptions } from '../../d.ts'
 import { merge, time2Str } from '../utils/utils'
 import i18n from './i18n'
+import mpegts from 'mpegts.js'
 
 // 插槽
 const slots = useSlots()
@@ -282,6 +282,9 @@ const slots = useSlots()
 const refPlayer = ref()
 const refVideo = ref()
 const refFooter = ref<HTMLDivElement>()
+
+const FLV_VIDEO_CODE_ID_AVC = 7
+// const FLV_VIDEO_CODE_ID_HEVC = 12
 
 const emit = defineEmits([
   // 视频事件
@@ -416,7 +419,7 @@ interface Data {
   close: CloseParam
   error: MediaErrorX | undefined
   fetcher: Fetcher | undefined
-  flv: flvjs.Player | undefined
+  flv: mpegts.Player | undefined
   focused: boolean
   // 提示文本
   message: string
@@ -462,6 +465,7 @@ interface Data {
   video?: HTMLMediaElement
   // 速率文本
   rateText: string
+  flvCodeId: number
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
@@ -502,7 +506,8 @@ let _data: Data = {
   lastTime: 0,
   timeText: '00:00:00/00:45:00',
   video: undefined,
-  rateText: '1X'
+  rateText: '1X',
+  flvCodeId: FLV_VIDEO_CODE_ID_AVC
 }
 
 let self = reactive(_data)
@@ -660,7 +665,11 @@ const vIfSpeed = computed(() => {
 
 const vIfRecord = computed(() => {
   if (self.lastOptions && self.lastOptions.record) {
-    return self.lastOptions.record && self.status === 3
+    return (
+      self.lastOptions.record &&
+      self.status === 3 &&
+      self.flvCodeId === FLV_VIDEO_CODE_ID_AVC
+    )
   }
   return false
 })
@@ -728,10 +737,10 @@ const createPlayer = (option: V3dPlayerOptions) => {
     type: type,
     customType: {
       flv: (video: HTMLMediaElement) => {
-        flvjs.LoggingControl.enableDebug = false
-        flvjs.LoggingControl.enableVerbose = false
-        flvjs.LoggingControl.enableWarn = false
-        flvjs.LoggingControl.enableError = false
+        mpegts.LoggingControl.enableDebug = false
+        mpegts.LoggingControl.enableVerbose = false
+        mpegts.LoggingControl.enableWarn = false
+        mpegts.LoggingControl.enableError = false
         self.video = video
         createFlvPlayer(video, option)
       },
@@ -934,9 +943,13 @@ const currentUrl = () => {
 }
 
 const createFlvPlayer = (video: HTMLMediaElement, option: V3dPlayerOptions) => {
-  const flvPlayer = flvjs.createPlayer(
+  if (!mpegts.getFeatureList().mseLivePlayback) {
+    console.warn('mse no support')
+    return
+  }
+  const flvPlayer = mpegts.createPlayer(
     {
-      type: 'flv',
+      type: 'mse',
       url: video.src,
       isLive: true,
       cors: true,
@@ -950,12 +963,11 @@ const createFlvPlayer = (video: HTMLMediaElement, option: V3dPlayerOptions) => {
       fixAudioTimestampGap: false
     }
   )
-  flvPlayer.on(flvjs.Events.ERROR, (errType, errDetails, e) => {
+  flvPlayer.on(mpegts.Events.ERROR, (errType, errDetails, e) => {
     // this.status = 4
     // this.error = this.getError('(flv) ' + e.msg)
-    // console.log(errType)
     switch (errType) {
-      case flvjs.ErrorTypes.NETWORK_ERROR:
+      case mpegts.ErrorTypes.NETWORK_ERROR:
         // 存在多种情况 以下是常见几种
         // ERR_FAILED 504 连接到srs 超过1分钟一直没有等到流时提示  Exception
         // ERR_CONNECTION_REFUSED 访问到一个不存在的IP地址时 Exception
@@ -966,13 +978,13 @@ const createFlvPlayer = (video: HTMLMediaElement, option: V3dPlayerOptions) => {
           message: 'MEDIA_ERR_NETWORK: (flv) ' + e.msg
         }
         break
-      case flvjs.ErrorTypes.MEDIA_ERROR:
+      case mpegts.ErrorTypes.MEDIA_ERROR:
         self.error = {
           code: 3,
           message: 'MEDIA_ERR_DECODE: (flv) ' + e.msg
         }
         break
-      case flvjs.ErrorTypes.OTHER_ERROR:
+      case mpegts.ErrorTypes.OTHER_ERROR:
         self.error = {
           code: 4,
           message: 'OTHER_ERROR: (flv) ' + e.msg
@@ -982,7 +994,11 @@ const createFlvPlayer = (video: HTMLMediaElement, option: V3dPlayerOptions) => {
     trigger('error')
     self.error = undefined
   })
-  flvPlayer.on(flvjs.Events.STATISTICS_INFO, info => {
+  flvPlayer.on(mpegts.Events.METADATA_ARRIVED, meta => {
+    // 只有flv可以收到
+    self.flvCodeId = meta.videocodecid
+  })
+  flvPlayer.on(mpegts.Events.STATISTICS_INFO, info => {
     self.speed = info.speed.toFixed(0)
     if (self.autoAudio && self.lastOptions && self.lastOptions.hasAudio) {
       // 有下载 但一直无法解码 表示无音频
@@ -1194,6 +1210,7 @@ const destoryPlayer = () => {
   self.duration = 0
   self.playTime = 0
   self.lastTime = 0
+  self.flvCodeId = FLV_VIDEO_CODE_ID_AVC
 }
 
 /**

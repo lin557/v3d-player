@@ -109,7 +109,6 @@
 import { ref, reactive, onMounted } from 'vue'
 import V3dPlayer from './components/v3d-player.vue'
 import { V3dPlayerEvents, V3dDisplay } from '../d.ts'
-import flvjs from 'flv.js'
 
 interface Data {
   allowPause: boolean
@@ -149,71 +148,6 @@ const _data: Data = {
 let self = reactive(_data)
 
 const player = ref()
-
-const videoRef = ref()
-
-let flvPlayer: flvjs.Player
-
-const create = () => {
-  if (flvPlayer) {
-    flvPlayer.unload()
-    flvPlayer.detachMediaElement()
-    flvPlayer.destroy()
-  }
-  flvPlayer = flvjs.createPlayer(
-    {
-      type: 'flv',
-      url: self.src,
-      isLive: true,
-      cors: true,
-      withCredentials: false,
-      hasAudio: self.hasAudio
-    },
-    {
-      // 启用IO存储缓冲区。如果您需要实时流播放的实时（最小延迟），则设置为false
-      enableStashBuffer: false,
-      // 禁用音视频同步
-      fixAudioTimestampGap: true
-    }
-  )
-  flvPlayer.attachMediaElement(videoRef.value)
-  flvPlayer.load()
-
-  flvPlayer.on(flvjs.Events.MEDIA_INFO, () => {
-    // console.log(flvPlayer._transmuxer._controller)
-  })
-
-  flvPlayer.play()
-
-  // setTimeout(() => {
-  //   console.log(flvPlayer)
-  //   // flvPlayer._transmuxer._controller._demuxer.overridedHasAudio = false
-  //   console.log(flvPlayer._msectl._sourceBuffers)
-  //   flvPlayer._transmuxer._controller._remuxer._audioMeta = null
-  //   flvPlayer._transmuxer._controller._remuxer._audioNextDts = undefined
-  //   flvPlayer._transmuxer._controller._remuxer._audioStashedLastSample = null
-  //   // flvPlayer._msectl._sourceBuffers.audio = null
-  // }, 2000)
-
-  // setTimeout(() => {
-  //   const flvPlayer = flvjs.createPlayer(
-  //     {
-  //       type: 'flv',
-  //       url: self.src,
-  //       isLive: true,
-  //       cors: true,
-  //       withCredentials: false,
-  //       hasAudio: false
-  //     },
-  //     {
-  //       // 启用IO存储缓冲区。如果您需要实时流播放的实时（最小延迟），则设置为false
-  //       enableStashBuffer: false,
-  //       // 禁用音视频同步
-  //       fixAudioTimestampGap: true
-  //     }
-  //   )
-  // }, 3000)
-}
 
 const close = () => {
   player.value.close()

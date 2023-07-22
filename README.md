@@ -16,11 +16,12 @@ Html5 Video Player: vue3 + typescript + dplayer-lite
 
 - Streaming formats
   - [HLS](https://github.com/video-dev/hls.js)
-  - [FLV](https://github.com/Bilibili/flv.js)
+  - [FLV](https://github.com/xqq/mpegts.js)
   - MP4
 
 - Media formats
   - AVC(H.264)
+  - HEVC(H.265)
   - AAC
   - MP3
 
@@ -33,7 +34,7 @@ npm i v3d-player
 or
 
 ``` bash
-npm i v3d-player flv.js hls.js
+npm i v3d-player mpegts.js hls.js
 ```
 
 ## Usage
