@@ -11,6 +11,7 @@
       :screenshot="self.screenshot"
       :fullscreen="self.fullscreen"
       :poster="self.poster"
+      :alarm="self.alarm"
       @timeout="handleError"
       @position="handlePosition"
       @forward="handleForward"
@@ -56,6 +57,12 @@
         v-model="self.hasAudio"
       />
       <label for="options-audio">hasAudio(flv)</label>
+      <input
+        type="text"
+        class="demo-alarm"
+        placeholder="alarm"
+        v-model="self.alarm"
+      />
     </div>
     <div class="demo-control">
       <input
@@ -108,25 +115,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import V3dPlayer from './components/v3d-player.vue'
-import { V3dPlayerEvents, V3dDisplay } from '../d.ts'
+import { V3dPlayerEvents } from '../d.ts'
 
-interface Data {
-  allowPause: boolean
-  controls: V3dDisplay
-  poster: string
-  filled: boolean
-  src: string
-  border: boolean
-  live: boolean
-  record: boolean
-  connect: boolean
-  hasAudio: boolean
-  screenshot: boolean
-  fullscreen: boolean
-  forward: boolean
-}
-
-const _data: Data = {
+const _data = {
   allowPause: true,
   controls: 'auto',
   filled: false,
@@ -142,7 +133,8 @@ const _data: Data = {
   hasAudio: true,
   screenshot: true,
   fullscreen: true,
-  forward: true
+  forward: true,
+  alarm: ''
 }
 
 let self = reactive(_data)
@@ -183,7 +175,7 @@ const play = () => {
   const options = {
     autoplay: true,
     muted: false,
-    closeTime: 300000,
+    closeTime: 0,
     // controls: true,
     preventClickToggle: true,
     // theme: '#FF3366',

@@ -30,7 +30,7 @@
     <div class="v3d-time" v-if="vIfTime">
       {{ self.close.time / 1000 }}
     </div>
-    <div class="v3d-footer" ref="refFooter">
+    <div class="v3d-footer" :class="footerCls" ref="refFooter">
       <v3d-process-bar
         v-if="showBar"
         @v3dposition="handlePosition"
@@ -46,6 +46,7 @@
         aria-disabled="false"
         @click="toggle()"
       >
+        <span class="v3d-light"></span>
         <svg
           v-if="!self.paused"
           class="svg-footer"
@@ -88,6 +89,7 @@
         aria-disabled="false"
         @click="toggleMuted()"
       >
+        <span class="v3d-light"></span>
         <svg
           v-if="!self.muted"
           class="svg-footer"
@@ -124,6 +126,7 @@
         aria-disabled="false"
         @click="rateChange(false)"
       >
+        <span class="v3d-light"></span>
         <svg
           class="svg-footer"
           viewBox="0 0 1239 1024"
@@ -143,6 +146,7 @@
         aria-disabled="false"
         @click="rateChange(true)"
       >
+        <span class="v3d-light"></span>
         <svg
           class="svg-footer"
           viewBox="0 0 1239 1024"
@@ -173,6 +177,7 @@
         aria-disabled="false"
         @click="toggleRecord()"
       >
+        <span class="v3d-light"></span>
         <svg
           class="svg-footer"
           viewBox="0 0 1024 1024"
@@ -193,6 +198,7 @@
         aria-disabled="false"
         @click="snapshot()"
       >
+        <span class="v3d-light"></span>
         <svg
           class="svg-footer"
           viewBox="0 0 1024 1024"
@@ -212,6 +218,7 @@
         aria-disabled="false"
         @click="toggleScreen()"
       >
+        <span class="v3d-light"></span>
         <svg
           class="svg-footer"
           viewBox="0 0 1024 1024"
@@ -231,6 +238,7 @@
         aria-disabled="false"
         @click="close()"
       >
+        <span class="v3d-light"></span>
         <svg
           class="svg-footer"
           viewBox="0 0 1024 1024"
@@ -343,6 +351,10 @@ const props = defineProps({
   fill: {
     type: Boolean,
     default: false
+  },
+  alarm: {
+    type: String,
+    default: ''
   },
   index: {
     type: Number,
@@ -631,6 +643,10 @@ const statusCls = computed(() => {
   }
 })
 
+const footerCls = computed(() => {
+  return props.alarm && props.alarm.trim() ? 'v3d-alarm' : ''
+})
+
 const playTitle = computed(() => {
   return self.paused ? locale('play') : locale('pause')
 })
@@ -680,7 +696,11 @@ const titleText = computed(() => {
     text = text + ' ' + self.timeText
   }
   if (self.title) {
-    text = text.trim() + ' ' + self.title
+    if (props.alarm && props.alarm.trim()) {
+      text = text.trim() + ' ' + self.title + ' - ' + props.alarm
+    } else {
+      text = text.trim() + ' ' + self.title
+    }
   }
 
   return text.trim()
@@ -782,25 +802,6 @@ const createPlayer = (option: V3dPlayerOptions) => {
         hls.loadSource(video.src)
         hls.attachMedia(video)
         self.hls = hls
-      },
-      flv265: (video: HTMLMediaElement) => {
-        video.classList.add('v3d-hidden')
-        const canvas = document.createElement('canvas')
-        canvas.classList.add(
-          'dplayer-video',
-          'dplayer-video-current',
-          'vjs-canvas'
-        )
-        video.parentElement?.append(canvas)
-        const ctx = canvas.getContext('2d')
-        if (ctx !== null) {
-          ctx.fillStyle = 'rgb(200,0,0)'
-          //绘制矩形
-          ctx.fillRect(10, 10, 50, 50)
-
-          ctx.fillStyle = 'rgba(0, 0, 200, 0.5)'
-          ctx.fillRect(30, 30, 50, 50)
-        }
       }
     }
   }
@@ -1694,6 +1695,7 @@ defineExpose({
 <style lang="scss">
 $footerHeight: 30px;
 $footerColor: rgba(30, 30, 30, 72%);
+$footerAlarm: rgba(255, 30, 30, 60%);
 
 .v3d-player {
   width: 100%;
@@ -1772,6 +1774,7 @@ $footerColor: rgba(30, 30, 30, 72%);
     background: $footerColor;
     display: none;
     z-index: 4;
+    transition: background-color 0.1s ease-in-out;
 
     .v3d-control {
       position: relative;
@@ -1795,12 +1798,21 @@ $footerColor: rgba(30, 30, 30, 72%);
       appearance: none;
       width: 30px;
       line-height: 0;
+      position: relative;
+      .v3d-light {
+        width: 1px;
+        height: 1px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+      }
     }
 
     .v3d-button:hover {
+      .v3d-light {
+        box-shadow: 0 0 8px 8px rgba(255, 255, 255, 0.5);
+      }
       .svg-footer {
-        background-color: #555;
-        box-shadow: 0px 0px 8px #ccc;
         transform: scale(1.05);
         path {
           fill: #ddd;
@@ -1809,9 +1821,10 @@ $footerColor: rgba(30, 30, 30, 72%);
     }
 
     .v3d-button:active {
+      .v3d-light {
+        box-shadow: 0 0 8px 8px rgba(255, 255, 255, 0.5);
+      }
       .svg-footer {
-        background-color: #555;
-        box-shadow: 0px 0px 8px #ccc;
         transform: scale(0.95);
         path {
           fill: #eee;
@@ -1857,6 +1870,40 @@ $footerColor: rgba(30, 30, 30, 72%);
       .svg-footer {
         path {
           fill: #f00 !important;
+        }
+      }
+    }
+  }
+
+  .v3d-alarm {
+    background: $footerAlarm;
+
+    .v3d-control {
+      color: #eee;
+    }
+
+    .v3d-button {
+      .svg-footer {
+        path {
+          fill: #eee;
+        }
+      }
+    }
+
+    .v3d-button:hover {
+      .svg-footer {
+        background-color: transparent;
+        path {
+          fill: #fff;
+        }
+      }
+    }
+
+    .v3d-button:active {
+      .svg-footer {
+        background-color: transparent;
+        path {
+          fill: #fff;
         }
       }
     }

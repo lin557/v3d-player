@@ -130,7 +130,7 @@ type __VLS_WithTemplateSlots<T, S> = T & {
   }
 }
 
-declare const V3dPlayer: __VLS_WithTemplateSlots<
+declare const _default: __VLS_WithTemplateSlots<
   import('vue').DefineComponent<
     {
       allowPause: {
@@ -144,6 +144,10 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       fill: {
         type: BooleanConstructor
         default: boolean
+      }
+      alarm: {
+        type: StringConstructor
+        default: string
       }
       index: {
         type: NumberConstructor
@@ -397,6 +401,10 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
           type: BooleanConstructor
           default: boolean
         }
+        alarm: {
+          type: StringConstructor
+          default: string
+        }
         index: {
           type: NumberConstructor
           default: number
@@ -501,12 +509,14 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
       forward: boolean
       allowPause: boolean
       border: boolean
+      alarm: string
       index: number
       controls: string
       lang: string
       options: Record<string, any>
       poster: string
-    }
+    },
+    {}
   >,
   {
     ready: (_: {}) => any
@@ -514,4 +524,4 @@ declare const V3dPlayer: __VLS_WithTemplateSlots<
     error: (_: {}) => any
   }
 >
-export default V3dPlayer
+export default _default
