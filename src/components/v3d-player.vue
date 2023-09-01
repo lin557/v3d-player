@@ -518,7 +518,7 @@ let _data: Data = {
   lastTime: 0,
   timeText: '00:00:00/00:45:00',
   video: undefined,
-  rateText: '1X',
+  rateText: '',
   flvCodeId: FLV_VIDEO_CODE_ID_AVC
 }
 
@@ -757,16 +757,16 @@ const createPlayer = (option: V3dPlayerOptions) => {
     type: type,
     customType: {
       flv: (video: HTMLMediaElement) => {
-        mpegts.LoggingControl.enableDebug = false
-        mpegts.LoggingControl.enableVerbose = false
-        mpegts.LoggingControl.enableWarn = false
-        mpegts.LoggingControl.enableError = false
+        mpegts.LoggingControl.enableDebug = opts.debug ? true : false
+        mpegts.LoggingControl.enableVerbose = opts.debug ? true : false
+        mpegts.LoggingControl.enableWarn = opts.debug ? true : false
+        mpegts.LoggingControl.enableError = opts.debug ? true : false
         self.video = video
         createFlvPlayer(video, option)
       },
       customHls: (video: HTMLMediaElement) => {
         const hls = new Hls({
-          debug: false,
+          debug: opts.debug ? true : false,
           // vite4时会出现 这里先改为false, hls官方bug 他们修复中
           // @see https://github.com/video-dev/hls.js/issues/5156
           // @see https://github.com/video-dev/hls.js/issues/5107
@@ -1119,8 +1119,8 @@ const doTimeUpdate = () => {
   if (self.player) {
     self.player.on('timeupdate', () => {
       const forward = getForward()
-      if (props.forward && isLive()) {
-        self.rateText = forward.toString() + 'X'
+      if (props.forward) {
+        self.rateText = forward === 1 ? '' : forward.toString() + 'X'
       } else {
         self.rateText = ''
       }
