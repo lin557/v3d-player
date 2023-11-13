@@ -25,6 +25,7 @@ export type V3dPlayerEvents =
   | 'volumechange'
   | 'waiting'
   // 播放器事件
+  | 'close'
   | 'timeout'
   | 'ready'
   | 'screenshot'

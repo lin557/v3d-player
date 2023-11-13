@@ -15,6 +15,7 @@
       @timeout="handleError"
       @position="handlePosition"
       @forward="handleForward"
+      @close="handleClose"
     >
     </v3d-player>
 
@@ -115,7 +116,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import V3dPlayer from './components/v3d-player.vue'
-import { V3dPlayerEvents } from '../d.ts'
+import { V3dPlayerEvents, V3dPlayerOptions } from '../d.ts'
 
 const _data = {
   allowPause: true,
@@ -159,6 +160,10 @@ const handlePosition = (position: number) => {
 
 const handleForward = (rate: number) => {
   console.log('forward: ' + rate)
+}
+
+const handleClose = (opts: V3dPlayerOptions) => {
+  console.log(opts)
 }
 
 const muted = () => {

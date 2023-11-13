@@ -320,6 +320,7 @@ const emit = defineEmits([
   'volumechange',
   'waiting',
   // 播放器事件
+  'close',
   'timeout',
   'ready',
   'screenshot',
@@ -452,6 +453,8 @@ interface Data {
   rate: number
   // 加载flv时用于显示加载网速
   speed: string
+  // 是否获取到数据包
+  fetched: boolean
   // 0=空闲 1=占用中 2=请求中 3=播放中/缓冲中 4=错误
   status: number
   // 定时器句柄
@@ -478,10 +481,11 @@ interface Data {
   // 速率文本
   rateText: string
   flvCodeId: number
+  isFullscreen: boolean
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
-const ERR_MAX_AUDIO_COUNT = 10
+const ERR_MAX_AUDIO_COUNT = 8
 
 let _data: Data = {
   autoAudio: true,
@@ -505,6 +509,7 @@ let _data: Data = {
   progress: 0,
   rate: 1.0,
   speed: '',
+  fetched: false,
   status: 0,
   replayId: 0,
   timerOut: 0,
@@ -519,7 +524,8 @@ let _data: Data = {
   timeText: '00:00:00/00:45:00',
   video: undefined,
   rateText: '',
-  flvCodeId: FLV_VIDEO_CODE_ID_AVC
+  flvCodeId: FLV_VIDEO_CODE_ID_AVC,
+  isFullscreen: false
 }
 
 let self = reactive(_data)
@@ -717,7 +723,7 @@ const bufferedEnd = () => {
 }
 
 const close = () => {
-  destoryPlayer()
+  destroyPlayer()
 }
 
 const createPlayer = (option: V3dPlayerOptions) => {
@@ -736,7 +742,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
   if (opts.title === '' && self.title) {
     opts.title = self.title
   }
-  destoryPlayer()
+  destroyPlayer()
   self.muted = opts.muted
   self.order = opts.order
   self.unique = opts.unique
@@ -904,11 +910,13 @@ const createPlayer = (option: V3dPlayerOptions) => {
     }
   })
   self.player.on('fullscreen', () => {
+    self.isFullscreen = true
     if (props.controls !== 'none') {
       refVideo.value.append(refFooter.value)
     }
   })
   self.player.on('fullscreen_cancel', () => {
+    self.isFullscreen = false
     if (props.controls !== 'none') {
       refPlayer.value.append(refFooter.value)
     }
@@ -1001,9 +1009,12 @@ const createFlvPlayer = (video: HTMLMediaElement, option: V3dPlayerOptions) => {
   })
   flvPlayer.on(mpegts.Events.STATISTICS_INFO, info => {
     self.speed = info.speed.toFixed(0)
+    if (info.speed > 0) {
+      self.fetched = true
+    }
     if (self.autoAudio && self.lastOptions && self.lastOptions.hasAudio) {
       // 有下载 但一直无法解码 表示无音频
-      if (info.speed > 0 && info.decodedFrames === 0) {
+      if (self.fetched && info.decodedFrames === 0) {
         self.progress++
         if (self.progress >= ERR_MAX_AUDIO_COUNT) {
           window.console.warn(
@@ -1192,14 +1203,19 @@ const closePlayer = () => {
   clearTimerOut()
 }
 
-const destoryPlayer = () => {
+const destroyPlayer = () => {
+  if (self.isFullscreen && props.controls !== 'none') {
+    refPlayer.value.append(refFooter.value)
+  }
   closePlayer()
   self.status = 0
   self.autoAudio = true
   self.error = undefined
+  const opts = self.lastOptions
   self.lastOptions = undefined
   self.rate = 1.0
   self.speed = ''
+  self.fetched = false
   self.message = ''
   self.title = undefined
   self.unique = undefined
@@ -1212,6 +1228,9 @@ const destoryPlayer = () => {
   self.playTime = 0
   self.lastTime = 0
   self.flvCodeId = FLV_VIDEO_CODE_ID_AVC
+  if (opts) {
+    emit('close', opts)
+  }
 }
 
 /**
@@ -1652,7 +1671,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  destoryPlayer()
+  destroyPlayer()
 })
 
 onMounted(() => {
