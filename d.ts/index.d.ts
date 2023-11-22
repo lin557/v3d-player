@@ -93,36 +93,37 @@ export interface RecordParam {
 }
 
 export interface V3dPlayerOptions {
-  autoplay?: boolean | undefined
-  autoRate?: RateParam | undefined
-  closeTime?: number | undefined
-  connect?: boolean | undefined
+  autoplay?: boolean
+  autoRate?: RateParam
+  closeTime?: number
+  connect?: boolean
   container?: HTMLElement | null
-  controls?: boolean | undefined
-  contextmenu?: DPlayerContextMenuItem[] | undefined
-  debug?: boolean | undefined
-  hasAudio?: boolean | undefined
-  hotkey?: boolean | undefined
-  lang?: string | undefined
-  live?: boolean | undefined
-  logo?: string | undefined
-  loop?: boolean | undefined
-  muted?: boolean | undefined
-  mutex?: boolean | undefined
-  order?: number | undefined
-  preload?: Preload | undefined
-  preventClickToggle?: boolean | undefined
+  controls?: boolean
+  contextmenu?: DPlayerContextMenuItem[]
+  debug?: boolean
+  hasAudio?: boolean
+  hotkey?: boolean
+  lang?: string
+  live?: boolean
+  logo?: string
+  loop?: boolean
+  muted?: boolean
+  mutex?: boolean
+  order?: number
+  preload?: Preload
+  preventClickToggle?: boolean
   src: string
-  record?: boolean | undefined
+  record?: boolean
   replay?: number
-  theme?: string | undefined
-  title?: string | undefined
-  video?: DPlayerVideo | undefined
-  volume?: number | undefined
-  unique?: string | undefined
-  userData?: any | undefined
-  duration?: number | undefined
-  startTime?: number | undefined
+  theme?: string
+  title?: string
+  video?: DPlayerVideo
+  volume?: number
+  unique?: string
+  userData?: any
+  duration?: number
+  startTime?: number
+  loading?: boolean
 }
 
 type __VLS_WithTemplateSlots<T, S> = T & {

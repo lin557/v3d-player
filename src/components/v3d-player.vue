@@ -236,7 +236,7 @@
         type="button"
         :title="locale('close')"
         aria-disabled="false"
-        @click="close()"
+        @click="close"
       >
         <span class="v3d-light"></span>
         <svg
@@ -566,7 +566,8 @@ const defaultOption = {
   volume: 0.7,
   unique: '',
   duration: 0,
-  startTime: 0
+  startTime: 0,
+  loading: false
 }
 
 const btnRecCls = computed(() => {
@@ -750,7 +751,6 @@ const createPlayer = (option: V3dPlayerOptions) => {
   self.userData = opts.userData
   self.duration = opts.duration
 
-  // console.log(opts)
   let type = getMediaType(option.src)
   if (type === 'hls') {
     type = 'customHls'
@@ -859,7 +859,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
       self.status = 4
       switch (self.error.code) {
         case 1:
-          // MEDIA_ERR_ABORTED
+          // 1=MEDIA_ERR_ABORTED 4=MEDIA_ELEMENT_ERROR
           break
         case 2:
           // MEDIA_ERR_NETWORK
@@ -1223,13 +1223,25 @@ const destroyPlayer = () => {
   self.lastFrame = 0
   self.progress = 0
   self.paused = false
+  const userData = self.userData
   self.userData = undefined
   self.duration = 0
   self.playTime = 0
   self.lastTime = 0
   self.flvCodeId = FLV_VIDEO_CODE_ID_AVC
+  // 异常重连不触发close
   if (opts) {
-    emit('close', opts)
+    let replay = opts.replay || 0
+    if (replay === 0) {
+      emit('close', opts)
+    }
+    // 不管任何情况 都变成 0
+    opts.replay = 0
+  } else {
+    // 占用时
+    if (userData) {
+      emit('close', undefined)
+    }
   }
 }
 

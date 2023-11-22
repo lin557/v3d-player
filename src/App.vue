@@ -12,6 +12,7 @@
       :fullscreen="self.fullscreen"
       :poster="self.poster"
       :alarm="self.alarm"
+      :timeout="self.timeout"
       @timeout="handleError"
       @position="handlePosition"
       @forward="handleForward"
@@ -135,7 +136,8 @@ const _data = {
   screenshot: true,
   fullscreen: true,
   forward: true,
-  alarm: ''
+  alarm: '',
+  timeout: 10000
 }
 
 let self = reactive(_data)
@@ -162,8 +164,8 @@ const handleForward = (rate: number) => {
   console.log('forward: ' + rate)
 }
 
-const handleClose = (opts: V3dPlayerOptions) => {
-  console.log(opts)
+const handleClose = (opts: V3dPlayerOptions, userData: unknown) => {
+  console.log('handleClose', opts, userData)
 }
 
 const muted = () => {
@@ -171,9 +173,7 @@ const muted = () => {
 }
 
 const occupy = () => {
-  player.value.occupy(1, '456', '占用中')
-
-  console.log(player.value.userData())
+  player.value.occupy(1, '456', '占用中', { a: 1, b: 2 })
 }
 
 const play = () => {
