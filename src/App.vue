@@ -178,8 +178,8 @@ const occupy = () => {
 
 const play = () => {
   const options = {
-    autoplay: true,
-    muted: false,
+    autoplay: false,
+    muted: true,
     closeTime: 0,
     // controls: true,
     preventClickToggle: true,
@@ -251,7 +251,9 @@ const toggleScreen = () => {
 }
 
 onMounted(() => {
-  player.value.el().classList.add('aaa')
+  setTimeout(() => {
+    play()
+  }, 1000)
 })
 </script>
 <style lang="scss">

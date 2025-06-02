@@ -9,5 +9,6 @@ export default {
   record: '录像',
   loading: '加载中',
   forward: '快进',
-  backward: '慢进'
+  backward: '慢进',
+  timeout: '连接超时'
 }

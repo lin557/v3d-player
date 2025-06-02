@@ -425,6 +425,9 @@ interface CloseParam {
   time: number
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let WeixinJSBridge: any
+
 interface Data {
   // 当http-flv头有音视频 但http-flv没有音频流时 自动重置播放器
   autoAudio: boolean
@@ -482,6 +485,8 @@ interface Data {
   rateText: string
   flvCodeId: number
   isFullscreen: boolean
+  // 不触发close
+  isCancelClose: boolean
 }
 
 // 超过5个process 都没有收到音频流 自动重载播放器
@@ -525,7 +530,8 @@ let _data: Data = {
   video: undefined,
   rateText: '',
   flvCodeId: FLV_VIDEO_CODE_ID_AVC,
-  isFullscreen: false
+  isFullscreen: false,
+  isCancelClose: false
 }
 
 let self = reactive(_data)
@@ -567,7 +573,8 @@ const defaultOption = {
   unique: '',
   duration: 0,
   startTime: 0,
-  loading: false
+  loading: false,
+  deskMode: true
 }
 
 const btnRecCls = computed(() => {
@@ -772,12 +779,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
       },
       customHls: (video: HTMLMediaElement) => {
         const hls = new Hls({
-          debug: opts.debug ? true : false,
-          // vite4时会出现 这里先改为false, hls官方bug 他们修复中
-          // @see https://github.com/video-dev/hls.js/issues/5156
-          // @see https://github.com/video-dev/hls.js/issues/5107
-          // @see https://github.com/video-dev/hls.js/issues/2910
-          enableWorker: false
+          debug: opts.debug ? true : false
         })
         hls.on(Hls.Events.ERROR, (event, data) => {
           // NETWORK_ERROR = "networkError",
@@ -805,7 +807,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
         //     //
         //   }
         // )
-        hls.loadSource(video.src)
+        hls.loadSource(option.src)
         hls.attachMedia(video)
         self.hls = hls
       }
@@ -814,6 +816,8 @@ const createPlayer = (option: V3dPlayerOptions) => {
   // 初始化视频对象
   self.lastOptions = opts
   self.player = new Dplayer(opts as DPlayerOptions)
+  // 不显示工具栏 在移动端时明显
+  self.player.controller.hide()
   // 下载插件
   if (opts.record) {
     self.fetcher = new Fetcher(self.player, { live: opts.live })
@@ -846,6 +850,7 @@ const createPlayer = (option: V3dPlayerOptions) => {
       self.lastOptions.live &&
       !self.paused
     ) {
+      self.player.transition = false
       self.player.play()
     }
   })
@@ -932,6 +937,27 @@ const createPlayer = (option: V3dPlayerOptions) => {
   doTimeUpdate()
 
   eventToVue()
+
+  //self.player.play()
+
+  if (self.lastOptions.autoplay) {
+    if (WeixinJSBridge) {
+      WeixinJSBridge.invoke('getNetworkType', {}, function () {
+        alert('getNetworkType')
+        self.player?.video.play()
+      })
+
+      document.addEventListener(
+        'WeixinJSBridgeReady',
+        function () {
+          alert(self.player?.video)
+          self.player?.video.play()
+        },
+        false
+      )
+    }
+  }
+
   self.status = 2
 }
 
@@ -1022,6 +1048,7 @@ const createFlvPlayer = (video: HTMLMediaElement, option: V3dPlayerOptions) => {
           )
           // 关掉音频 自动重载
           self.lastOptions.hasAudio = false
+          self.isCancelClose = true
           play(self.lastOptions)
           return
         }
@@ -1032,16 +1059,18 @@ const createFlvPlayer = (video: HTMLMediaElement, option: V3dPlayerOptions) => {
       self.lastFrame = info.decodedFrames
       return
     }
-    if (self.lastFrame !== info.decodedFrames) {
-      self.lastFrame = info.decodedFrames
-      self.lastCount = 0
-    } else {
-      self.lastCount++
-      // 30 约等于18秒 画面卡死时重连
-      if (self.lastCount >= 30) {
+    if (!self.paused) {
+      if (self.lastFrame !== info.decodedFrames) {
+        self.lastFrame = info.decodedFrames
         self.lastCount = 0
-        self.lastFrame = 0
-        replay(300, 'no decoded frame')
+      } else {
+        self.lastCount++
+        // 30 约等于18秒 画面卡死时重连
+        if (self.lastCount >= 30) {
+          self.lastCount = 0
+          self.lastFrame = 0
+          replay(300, 'no decoded frame')
+        }
       }
     }
   })
@@ -1097,7 +1126,7 @@ const clearTimerOut = () => {
 const doTimeout = () => {
   closePlayer()
   self.status = 4
-  self.message = 'Connect Timeout'
+  self.message = locale('timeout')
   emit('timeout', props.index)
 }
 
@@ -1230,6 +1259,10 @@ const destroyPlayer = () => {
   self.lastTime = 0
   self.flvCodeId = FLV_VIDEO_CODE_ID_AVC
   // 异常重连不触发close
+  if (self.isCancelClose) {
+    self.isCancelClose = false
+    return
+  }
   if (opts) {
     let replay = opts.replay || 0
     if (replay === 0) {
@@ -1444,7 +1477,7 @@ const replay = (time: number, msg: string) => {
     // 先占用 不被别人使用
     self.status = 1
     if (self.lastOptions.replay !== undefined) {
-      time = time + self.lastOptions.replay * 1000
+      time = time + self.lastOptions.replay * 2000
     }
     self.replayId = setTimeout(() => {
       if (self.lastOptions && self.lastOptions.replay !== undefined) {
@@ -1769,6 +1802,12 @@ $footerAlarm: rgba(255, 30, 30, 60%);
     background-position: center center;
     background-size: cover;
     box-sizing: border-box;
+
+    display: none;
+
+    .v3d-loading {
+      display: none !important;
+    }
   }
 
   .v3d-video {
